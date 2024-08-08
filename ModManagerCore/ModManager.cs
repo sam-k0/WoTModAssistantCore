@@ -125,6 +125,29 @@ namespace ModAssistant
             ModManagerConfig = LoadConfig();
         }
 
+        // Expects the whole path to the .wotmod file
+        public ModInfo GetModInfo(string modPath)
+        {
+            // extract the file
+            string extractFolder = ConfigIO.GetExtractFolder();
+            ZipFile.ExtractToDirectory(modPath, extractFolder);
+            // Check if the meta.xml file exists
+            if (!File.Exists(extractFolder + "/meta.xml"))
+            {
+                Console.WriteLine("Error: meta.xml file not found in the .wotmod file");
+                ConfigIO.ClearExtractFolder();
+                ModInfo modInfo = new ModInfo(Path.GetFileName(modPath), "unknown", Path.GetFileName(modPath),
+                                    "0.0.0", "No description available", Path.GetFileName(modPath));
+                return modInfo;
+            }
+            // read the meta.xml file
+            string xmlstr = File.ReadAllText(extractFolder + "/meta.xml");
+            ModInfo mod = new ModInfo(xmlstr, false, Path.GetFileName(modPath));
+            ConfigIO.ClearExtractFolder();
+            return mod;
+        }
+
+        // Expects the whole path to the .wotmod file
         public bool InstallMod(string modPath)
         {
             ConfigIO.ClearExtractFolder();
@@ -140,27 +163,15 @@ namespace ModAssistant
                 Console.WriteLine("File is not a .wotmod file");
                 return false;
             }
-            // extract the file
-            string extractFolder = ConfigIO.GetExtractFolder();
-            ZipFile.ExtractToDirectory(modPath, extractFolder);
-            // Check if the meta.xml file exists
-            if (!File.Exists(extractFolder + "/meta.xml"))
-            {
-                Console.WriteLine("Error: meta.xml file not found in the .wotmod file");
-                ConfigIO.ClearExtractFolder();
-                return false;
-            }
-            // read the meta.xml file
-            string xmlstr = File.ReadAllText(extractFolder + "/meta.xml");
-            ModInfo mod = new ModInfo(xmlstr, true, Path.GetFileName(modPath));
-            ConfigIO.ClearExtractFolder();
+            
+            ModInfo mod = GetModInfo(modPath);
 
             // check if the mod is already installed
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
 
             foreach (ModInfo installedMod in installedMods)
             {
-                if (installedMod.ModName == mod.ModName)
+                if (installedMod.PackageID == mod.PackageID)
                 {
                     // check if the current version is newer by comparing the version numbers as integers
                     try
@@ -196,6 +207,72 @@ namespace ModAssistant
             // Clean up
             ConfigIO.ClearExtractFolder();
             return true;
+        }
+
+        public bool UninstallMod(string pkID)
+        {
+            List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
+            foreach (ModInfo mod in installedMods)
+            {
+                if (mod.PackageID == pkID)
+                {
+                    // Delete the file
+                    File.Delete(GetNewestGameVersionFolder() + "/" + mod.LocalFileName);
+                    System.Console.WriteLine("Uninstalled mod " + mod.ModName + $" ({mod.PackageID})");
+                    return true;
+                }
+            }
+            Console.WriteLine("Mod not found");
+            return false;
+        }
+
+        public bool ToggleMod(string pkID){
+            List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
+            foreach (ModInfo mod in installedMods)
+            {
+                if (mod.PackageID == pkID)
+                {
+                    // Check if the mod is enabled
+                    if (mod.IsEnabled)
+                    {
+                        // Disable the mod
+                        File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + mod.LocalFileName + ".disabled");
+                        System.Console.WriteLine("Disabled mod " + mod.ModName+ $" ({mod.PackageID})");
+                        return true;
+                    }
+                    else
+                    {
+                        // Enable the mod
+                        // Remove the .disabled extension
+                        string nameWithoutDisabled = mod.LocalFileName.Substring(0, mod.LocalFileName.Length - ".disabled".Length);
+
+                        File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + nameWithoutDisabled);
+                        System.Console.WriteLine("Enabled mod " + mod.ModName+ $" ({mod.PackageID})");
+                        return true;
+                    }
+                }
+            }
+            Console.WriteLine("Mod not found");
+            return false;
+        }
+
+        public void ListMods(string keyword)
+        {
+            List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
+            foreach (ModInfo mod in installedMods)
+            {
+                if (mod.ModName.Contains(keyword) ||(keyword == "all"))
+                {
+                    System.Console.WriteLine("---------------------------");
+                    Console.WriteLine("Name: "+mod.ModName);
+                    Console.WriteLine("WGmods ID: "+mod.ModID);
+                    Console.WriteLine("PackageID: "+mod.PackageID);
+                    Console.WriteLine("Version: "+mod.Version);
+                    Console.WriteLine("Description: "+mod.Description);
+                    Console.WriteLine("Local package filename: "+mod.LocalFileName);
+                    Console.WriteLine("Is Enabled: "+mod.IsEnabled);
+                }
+            }
         }
 
     }

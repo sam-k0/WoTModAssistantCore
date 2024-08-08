@@ -39,8 +39,16 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
         case ArgumentParser.ArgumentType.About:
             Console.WriteLine("About command");
             break;
+
+        case ArgumentParser.ArgumentType.Toggle:
+            Console.WriteLine("Toggling mod: "+ arg.value);
+            modManager.ToggleMod(arg.value);
+            break;
+        
         case ArgumentParser.ArgumentType.List:
-            Console.WriteLine("List command");
+            Console.WriteLine("Listing mods: "+ arg.value);
+            modManager.ListMods(arg.value);
+
             break;
         case ArgumentParser.ArgumentType.Install:
             Console.WriteLine("Running install command");

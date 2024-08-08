@@ -21,6 +21,7 @@ public class ArgumentParser
         About,
         List,
         Install,
+        Toggle,
     }
 
     public struct Argument{
@@ -45,9 +46,12 @@ public class ArgumentParser
         {"--shutdown", ".*"},
         {"--exit", ".*"},
         {"--info", ".*"},
-        {"-l", ".*|all"},
+        {"-l", ".*|all"}, // list mods
         {"--list", ".*|all"},
-        {"--install", ".*"},
+        {"--install", ".*"}, // install mod
+        {"-i", ".*"},
+        {"--toggle", ".*"}, // toggle mod active / inactive
+
     };
 
 
@@ -91,7 +95,7 @@ public class ArgumentParser
                 "--list" => ArgumentType.List,
                 "-i" => ArgumentType.Install,
                 "--install" => ArgumentType.Install,
-
+                "--toggle" => ArgumentType.Toggle,
 
                 _ => throw new ArgumentException($"Invalid argument (err2): {args[i]}")
             };

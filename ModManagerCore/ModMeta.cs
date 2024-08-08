@@ -11,7 +11,7 @@ namespace ModAssistant
     {
         public string ModName { get; set; } = "unknown"; // The display name of the mod
         public string ModID { get; set; } = "unknown"; // The ID of the mod, used for identifying the mod on wgmods
-        public string Author { get; set; } = "unknown"; // using reverse Domain Name notation
+        public string PackageID { get; set; } = "unknown"; // using reverse Domain Name notation
         public string Version { get; set; } = "0.0"; // The version of the mod
         public string Description { get; set; } = ""; // The description of the mod
         public string LocalFileName { get; set; } // can be null , this is ONLY the filename, not the full path
@@ -25,7 +25,7 @@ namespace ModAssistant
         {
             ModName = modName;
             ModID = modID;
-            Author = author;
+            PackageID = author;
             Version = version;
             Description = description;
             LocalFileName = localFileName;
@@ -36,7 +36,7 @@ namespace ModAssistant
         {
             ModName = modName;
             ModID = modID;
-            Author = author;
+            PackageID = author;
             Version = version;
             Description = description;
             LocalFileName = localFileName;
@@ -75,7 +75,7 @@ namespace ModAssistant
 
             if (xmlKeyExists(xmlDoc, "id"))
             {
-                Author = xmlDict["id"];
+                PackageID = xmlDict["id"];
             }
 
             if (xmlKeyExists(xmlDoc, "description"))
