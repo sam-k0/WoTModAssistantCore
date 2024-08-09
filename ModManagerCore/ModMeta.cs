@@ -88,6 +88,18 @@ namespace ModAssistant
 
         }
 
+        public override string ToString()
+        {
+            // Return information as a formatted string
+            return "Mod Name: " + ModName + "\n" +
+                   "Mod ID: " + ModID + "\n" +
+                   "Package ID: " + PackageID + "\n" +
+                   "Version: " + Version + "\n" +
+                   "Description: " + Description + "\n" +
+                   "Local File Name: " + LocalFileName + "\n" +
+                   "Is Enabled: " + IsEnabled + "\n";
+        }
+
         private bool xmlKeyExists(XmlDocument xmlDoc, string keyToCheck)
         {
             XmlNode node = xmlDoc.SelectSingleNode("//" + keyToCheck);

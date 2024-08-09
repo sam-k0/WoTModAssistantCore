@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Regex = System.Text.RegularExpressions.Regex;
 
@@ -15,13 +16,35 @@ public class ArgumentParser
 
     public enum ArgumentType
     {
+        [Description("Help message.")]
         Help,
+
+        [Description("Sudo command.")]
         Sudo,
+
+        [Description("Exits and clears cache.")]
         Shutdown,
+
+        [Description("About message.")]
         About,
+
+        [Description("List mods: (all) shows all mods, or enter search term.")]
         List,
+
+        [Description("Install mod. needs the path to the mod package file.")]
         Install,
+
+        [Description("Toggle mod active / inactive, needs the package ID.")]
         Toggle,
+
+        [Description("Uninstall mod, needs the package ID.")]
+        Uninstall,
+
+        [Description("Move mods from previous version to the newest game version, needs: package ID, or: all to move all")]
+        MoveToNew,
+
+        [Description("Set all mods to active / inactive, allowed values: enabled, disabled")]
+        SetAll,
     }
 
     public struct Argument{
@@ -39,8 +62,8 @@ public class ArgumentParser
 
     Dictionary<string, string> argumentFormat = new Dictionary<string, string>
     {
-        {"-h", "all|list|help|about"},
-        {"--help", "all|list|help|about"},
+        {"-h", ".*"},
+        {"--help", ".*"},
         {"--sudo", "true|false"},
         // shutdown can be any string
         {"--shutdown", ".*"},
@@ -51,7 +74,9 @@ public class ArgumentParser
         {"--install", ".*"}, // install mod
         {"-i", ".*"},
         {"--toggle", ".*"}, // toggle mod active / inactive
-
+        {"--uninstall", ".*"}, // uninstall mod
+        {"--move-to-new", ".*"}, // move mod to new location
+        {"--set-all", "enabled|disabled"}, // set all mods to active / inactive
     };
 
 
@@ -90,17 +115,64 @@ public class ArgumentParser
                 "--sudo" => ArgumentType.Sudo,
                 "--shutdown" => ArgumentType.Shutdown, // both lead to the same action
                 "--exit" => ArgumentType.Shutdown,
-                "--info" => ArgumentType.About,
+                "--about" => ArgumentType.About,
                 "-l" => ArgumentType.List,
                 "--list" => ArgumentType.List,
                 "-i" => ArgumentType.Install,
                 "--install" => ArgumentType.Install,
                 "--toggle" => ArgumentType.Toggle,
-
+                "--uninstall" => ArgumentType.Uninstall,
+                "--move-to-new" => ArgumentType.MoveToNew,
+                "--set-all" => ArgumentType.SetAll,
+                
                 _ => throw new ArgumentException($"Invalid argument (err2): {args[i]}")
             };
 
             ValidArguments.Add(new Argument(args[i], type, args[i + 1]));
         }
+    }
+
+    public string CallHelp(string value)
+    {
+        string help = "Showing help for "+value+" command:\n";
+        switch (value)
+        {
+            case "all": 
+                help = "Showing help page for "+value;
+                break;
+            
+            case "list":
+                help += EnumHelper.GetEnumDescription(ArgumentType.List);
+                break;
+
+            case "help":
+                help += EnumHelper.GetEnumDescription(ArgumentType.Help);
+                break;
+
+            case "install":
+                help += EnumHelper.GetEnumDescription(ArgumentType.Install);
+                break;
+
+            case "toggle":
+                help += EnumHelper.GetEnumDescription(ArgumentType.Toggle);
+                break;
+
+            case "uninstall":
+                help += EnumHelper.GetEnumDescription(ArgumentType.Uninstall);
+                break;
+            
+            case "move-to-new":
+                help += EnumHelper.GetEnumDescription(ArgumentType.MoveToNew);
+                break;
+            
+            case "set-all":
+                help += EnumHelper.GetEnumDescription(ArgumentType.SetAll);
+                break;
+
+
+            default:
+                return("Invalid value for help argument");
+        }
+        return help;
     }
 }

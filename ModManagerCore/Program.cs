@@ -6,7 +6,7 @@ using ModAssistant;
 // Get compilation date
 DateTime buildDate = new FileInfo(Assembly.GetExecutingAssembly().Location).LastWriteTime;
 
-Console.WriteLine("Welcome to WoTModAssistant Core ver. "+buildDate.ToString("yyyy.MM.dd"));
+Console.WriteLine("WoTModAssistant Core ver. "+buildDate.ToString("yyyy.MM.dd"));
 
 ArgumentParser argumentParser;
 try
@@ -21,23 +21,28 @@ catch (ArgumentException e)
 
 
 ModManager modManager = new ModManager();
-Console.WriteLine("-> Game install directory set to "+modManager.ModManagerConfig.GameInstallDir);
+
 
 foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
 {
     switch (arg.type)
     {
         case ArgumentParser.ArgumentType.Help:
-            Console.WriteLine("Help message");
+            Console.WriteLine(argumentParser.CallHelp(arg.value));
             break;
         case ArgumentParser.ArgumentType.Sudo:
             Console.WriteLine("Sudo command");
             break;
         case ArgumentParser.ArgumentType.Shutdown:
-            Console.WriteLine("Shutdown command");
+            Console.WriteLine("Clearing cache before shutdown");
+
             break;
         case ArgumentParser.ArgumentType.About:
-            Console.WriteLine("About command");
+            Console.WriteLine("------ About ------");
+            Console.WriteLine("WoTModAssistant Core ver. "+buildDate.ToString("yyyy.MM.dd"));
+            Console.WriteLine("This tool is used to manage mods for World of Tanks\nThe tool is used to install, uninstall, enable, disable and move mods to the newest game version");
+            Console.WriteLine("-> Game install directory set to "+modManager.ModManagerConfig.GameInstallDir);
+
             break;
 
         case ArgumentParser.ArgumentType.Toggle:
@@ -53,6 +58,28 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
         case ArgumentParser.ArgumentType.Install:
             Console.WriteLine("Running install command");
             modManager.InstallMod(arg.value);
+            break;
+
+        case ArgumentParser.ArgumentType.Uninstall:
+            Console.WriteLine("Running uninstall command");
+            modManager.UninstallMod(arg.value);
+            break;
+
+        case ArgumentParser.ArgumentType.MoveToNew:
+            Console.WriteLine("Running move-to-new command");
+            modManager.MoveToNewestGameVersion(arg.value);
+            break;
+
+        case ArgumentParser.ArgumentType.SetAll:
+            Console.WriteLine("Running set-all command");
+            if(arg.value == "enabled")
+            {
+                modManager.ActivateAllMods();
+            
+            }else if(arg.value == "disabled")
+            {
+                modManager.DeactivateAllMods();
+            }
             break;
 
         default:

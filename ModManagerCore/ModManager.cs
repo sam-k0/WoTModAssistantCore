@@ -8,7 +8,6 @@ namespace ModAssistant
 {
     public class ModManager
     {
-
         public Config ModManagerConfig { get; private set; }
         // Get current app path, used for storing configs
         private Config? LoadConfig()
@@ -256,6 +255,37 @@ namespace ModAssistant
             return false;
         }
 
+        public bool ActivateAllMods()
+        {
+            List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
+            foreach (ModInfo mod in installedMods)
+            {
+                if (!mod.IsEnabled)
+                {
+                    // Remove the .disabled extension
+                    string nameWithoutDisabled = mod.LocalFileName.Substring(0, mod.LocalFileName.Length - ".disabled".Length);
+                    File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + nameWithoutDisabled);
+                }
+            }
+            System.Console.WriteLine("Activated all mods");
+            return true;
+        }
+
+        public bool DeactivateAllMods()
+        {
+            List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
+            foreach (ModInfo mod in installedMods)
+            {
+                if (mod.IsEnabled)
+                {
+                    // Disable the mod
+                    File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + mod.LocalFileName + ".disabled");
+                }
+            }
+            System.Console.WriteLine("Deactivated all mods");
+            return true;
+        }
+
         public void ListMods(string keyword)
         {
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
@@ -263,16 +293,45 @@ namespace ModAssistant
             {
                 if (mod.ModName.Contains(keyword) ||(keyword == "all"))
                 {
-                    System.Console.WriteLine("---------------------------");
-                    Console.WriteLine("Name: "+mod.ModName);
-                    Console.WriteLine("WGmods ID: "+mod.ModID);
-                    Console.WriteLine("PackageID: "+mod.PackageID);
-                    Console.WriteLine("Version: "+mod.Version);
-                    Console.WriteLine("Description: "+mod.Description);
-                    Console.WriteLine("Local package filename: "+mod.LocalFileName);
-                    Console.WriteLine("Is Enabled: "+mod.IsEnabled);
+                    System.Console.WriteLine("-----------------------");
+                    System.Console.WriteLine(mod.ToString());
                 }
             }
+        }
+
+        public void MoveToNewestGameVersion(string pkID)
+        {
+            List<string> items = GetGameVersionFoldersSorted();
+            if (items.Count < 2)
+            {
+                System.Console.WriteLine("Not enough game version folders to move mods");
+                return;
+            }
+            string newest = items[items.Count - 1];
+            string secondNewest = items[items.Count - 2];
+            // If move all or a specific mod
+            if (pkID == "all")
+            {
+                // Move all mods from the second newest game version folder to the newest game version folder
+                foreach (string file in Directory.EnumerateFiles(secondNewest, "*.wotmod"))
+                {
+                    File.Move(file, newest + "/" + Path.GetFileName(file));
+                }
+                var num = Directory.EnumerateFiles(secondNewest, "*.wotmod").ToList().Count();
+                System.Console.WriteLine("Moved "+num+" mods from " + secondNewest + " to " + newest);
+                return;
+            }
+            List<ModInfo> installedMods = GetInstalledMods(secondNewest);
+            foreach (ModInfo mod in installedMods)
+            {
+                if (mod.PackageID == pkID)
+                {
+                    File.Move(secondNewest + "/" + mod.LocalFileName, newest + "/" + mod.LocalFileName);
+                    System.Console.WriteLine("Moved mod " + mod.ModName + $" ({mod.PackageID}) from " + secondNewest + " to " + newest);
+                    return;
+                }
+            }
+            System.Console.WriteLine("Mod ${pkID} not found in " + secondNewest);
         }
 
     }
