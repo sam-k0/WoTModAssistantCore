@@ -313,9 +313,17 @@ namespace ModAssistant
             if (pkID == "all")
             {
                 // Move all mods from the second newest game version folder to the newest game version folder
+                
                 foreach (string file in Directory.EnumerateFiles(secondNewest, "*.wotmod"))
                 {
-                    File.Move(file, newest + "/" + Path.GetFileName(file));
+                    try
+                    {
+                        File.Move(file, newest + "/" + Path.GetFileName(file));
+                    }
+                    catch (Exception e)
+                    {
+                        System.Console.WriteLine("Error moving file: " + e.Message);
+                    }
                 }
                 var num = Directory.EnumerateFiles(secondNewest, "*.wotmod").ToList().Count();
                 System.Console.WriteLine("Moved "+num+" mods from " + secondNewest + " to " + newest);
