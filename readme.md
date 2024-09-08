@@ -10,3 +10,9 @@ Built on .NET Core, this is cross-platform, developed on Linux
 
 ## Dependencies
 - Newtonsoft.Json
+
+## Building
+To build the release version, run the following command:
+```bash
+dotnet build -c Release -r linux-x64
+```

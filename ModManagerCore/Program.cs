@@ -22,6 +22,12 @@ catch (ArgumentException e)
 
 ModManager modManager = new ModManager();
 
+if (argumentParser.ValidArguments.Count == 0)
+{
+    Console.WriteLine("No arguments given, use --help all for help");
+    return;
+}
+
 
 foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
 {

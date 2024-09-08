@@ -16,34 +16,34 @@ public class ArgumentParser
 
     public enum ArgumentType
     {
-        [Description("Help message.")]
+        [Description("--help [all,keyword]: Help message.")]
         Help,
 
-        [Description("Sudo command.")]
+        [Description("[hidden]Sudo command.")]
         Sudo,
 
-        [Description("Exits and clears cache.")]
+        [Description("--exit [any]: Exits and clears cache.")]
         Shutdown,
 
-        [Description("About message.")]
+        [Description("--about [any]: About message.")]
         About,
 
-        [Description("List mods: (all) shows all mods, or enter search term.")]
+        [Description("--list [all,keyword]: List mods: (all) shows all mods, or enter search term.")]
         List,
 
-        [Description("Install mod. needs the path to the mod package file.")]
+        [Description("--install [path]: Install mod. needs the path to the mod package file.")]
         Install,
 
-        [Description("Toggle mod active / inactive, needs the package ID.")]
+        [Description("--toggle [pack_id]: Toggle mod active / inactive, needs the package ID.")]
         Toggle,
 
-        [Description("Uninstall mod, needs the package ID.")]
+        [Description("--uninstall [pack_id]: Uninstall mod, needs the package ID.")]
         Uninstall,
 
-        [Description("Move mods from previous version to the newest game version, needs: package ID, or: all to move all")]
+        [Description("--move-to-new [pack_id, all]: Move mods from previous version to the newest game version, needs: package ID, or: all to move all")]
         MoveToNew,
 
-        [Description("Set all mods to active / inactive, allowed values: enabled, disabled")]
+        [Description("--set-all [enabled,disabled]: Set all mods to active / inactive, allowed values: enabled, disabled")]
         SetAll,
     }
 
@@ -68,7 +68,7 @@ public class ArgumentParser
         // shutdown can be any string
         {"--shutdown", ".*"},
         {"--exit", ".*"},
-        {"--info", ".*"},
+        {"--about", ".*"},
         {"-l", ".*|all"}, // list mods
         {"--list", ".*|all"},
         {"--install", ".*"}, // install mod
@@ -84,7 +84,7 @@ public class ArgumentParser
 
     public ArgumentParser(string[] args)
     {
-        if (args.Length % 2 != 0)
+        if (args.Length % 2 != 0 )
         {
             throw new ArgumentException("Invalid argument list");
         }
@@ -138,7 +138,15 @@ public class ArgumentParser
         switch (value)
         {
             case "all": 
-                help = "Showing help page for "+value;
+                help = "Showing help for all commands:\n";
+
+                // iterate over all the enum values
+                foreach (ArgumentType arg in Enum.GetValues(typeof(ArgumentType)))
+                {
+
+                    help +="\n> "+ EnumHelper.GetEnumDescription(arg);
+                }
+
                 break;
             
             case "list":

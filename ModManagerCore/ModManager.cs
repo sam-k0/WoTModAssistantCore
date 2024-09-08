@@ -30,6 +30,8 @@ namespace ModAssistant
                 Config config = new Config();
                 config.GameInstallDir = installdir;
                 ConfigIO.WriteConfig(config);
+
+                Console.WriteLine("Successfully found game install directory: " + installdir);
             }   
             // Now, we can safely assume that the config exists and read it
             if (ConfigIO.ReadConfig() == null)
@@ -121,7 +123,11 @@ namespace ModAssistant
         public ModManager()
         {
             ConfigIO.ClearExtractFolder(); // Clean up, maybe the user closed the app while extracting
-            ModManagerConfig = LoadConfig();
+            if ((ModManagerConfig = LoadConfig()) == null)
+            {
+                throw new Exception("Config file not found after loading it");
+            }
+            
         }
 
         // Expects the whole path to the .wotmod file
