@@ -45,6 +45,9 @@ public class ArgumentParser
 
         [Description("--set-all [enabled,disabled]: Set all mods to active / inactive, allowed values: enabled, disabled")]
         SetAll,
+
+        [Description("--output [json,default]: Set output format for console, allowed values: json, default")]
+        Output,
     }
 
     public struct Argument{
@@ -77,6 +80,7 @@ public class ArgumentParser
         {"--uninstall", ".*"}, // uninstall mod
         {"--move-to-new", ".*"}, // move mod to new location
         {"--set-all", "enabled|disabled"}, // set all mods to active / inactive
+        {"-o", "json|default"} // output format for console
     };
 
 
@@ -124,6 +128,7 @@ public class ArgumentParser
                 "--uninstall" => ArgumentType.Uninstall,
                 "--move-to-new" => ArgumentType.MoveToNew,
                 "--set-all" => ArgumentType.SetAll,
+                "-o" => ArgumentType.Output,
                 
                 _ => throw new ArgumentException($"Invalid argument (err2): {args[i]}")
             };

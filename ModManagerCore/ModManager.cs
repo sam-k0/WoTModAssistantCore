@@ -3,12 +3,51 @@ using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ModAssistant
 {
+    public enum ErrorCode {
+        Success = 0,
+        FilesystemFailed = 1,
+        ModNotFound = 2,
+    }
+    public enum ActionCode
+    {
+        Install = 0,
+        Uninstall = 1,
+        Toggle = 2,
+        MoveToNew = 3,
+        SetAll = 4,
+        List = 5,
+    }
+    public struct Output {
+        public string message;
+        public ErrorCode errorCode;
+        public ActionCode actionCode;
+
+        public Output(string message, ErrorCode code, ActionCode actionCode)
+        {
+            this.message = message;
+            this.errorCode = code;
+            this.actionCode = actionCode;
+        }
+    }
     public class ModManager
     {
         public Config ModManagerConfig { get; private set; }
+        public bool JsonOutput { get; set; } = false;
+
+        private Output LogOutput(string message, ErrorCode code, ActionCode actionCode )
+        {
+            Output output = new Output(message, code, actionCode);
+            if(!JsonOutput)
+            {
+                Console.WriteLine(output.message);
+            }
+            return output;
+        }
+
         // Get current app path, used for storing configs
         private Config? LoadConfig()
         {
@@ -153,20 +192,19 @@ namespace ModAssistant
         }
 
         // Expects the whole path to the .wotmod file
-        public bool InstallMod(string modPath)
+        public Output InstallMod(string modPath)
         {
+
             ConfigIO.ClearExtractFolder();
             // check if the file exists
             if (!File.Exists(modPath))
             {
-                Console.WriteLine("File does not exist");
-                return false;
+                return LogOutput("Referenced file does not exist", ErrorCode.FilesystemFailed, ActionCode.Install);
             }
             // check if the file is a .wotmod file
             if (!modPath.EndsWith(".wotmod"))
             {
-                Console.WriteLine("File is not a .wotmod file");
-                return false;
+                return LogOutput("Referenced file is not a .wotmod file", ErrorCode.FilesystemFailed, ActionCode.Install);
             }
             
             ModInfo mod = GetModInfo(modPath);
@@ -183,35 +221,38 @@ namespace ModAssistant
                     {
                         if (int.Parse(installedMod.Version.Replace(".", "")) < int.Parse(mod.Version.Replace(".", "")))
                         {
-                            Console.WriteLine("Mod is already installed, but this version is newer");
                             // move the file to the mods folder
                             File.Move(modPath, GetNewestGameVersionFolder() + "/" + Path.GetFileName(modPath));
-                            System.Console.WriteLine("Installed mod to " + GetNewestGameVersionFolder() + "/" + Path.GetFileName(modPath));
                             // Clean up
                             ConfigIO.ClearExtractFolder();
-                            return true;
+
+                            return LogOutput(
+                                "Installed mod to " + GetNewestGameVersionFolder() + "/" + Path.GetFileName(modPath),
+                                ErrorCode.Success,
+                                ActionCode.Install);
                         }
                         else
                         {
-                            Console.WriteLine("A mod with the same name is already installed, and the version is the same or older");
                             ConfigIO.ClearExtractFolder();
-                            return false;
+                            return LogOutput(
+                                "A mod with the same name is already installed, and the version is the same or older",
+                                ErrorCode.Success, ActionCode.Install);
                         }
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Error comparing version numbers: " + e.Message);
                         ConfigIO.ClearExtractFolder();
-                        return false;
+                        return LogOutput("Error comparing version numbers between mods: " + e.Message, ErrorCode.FilesystemFailed, ActionCode.Install);
                     }
                 }
             }
             // move the file to the mods folder
             File.Move(modPath, GetNewestGameVersionFolder() + "/" + Path.GetFileName(modPath));
-            System.Console.WriteLine("Installed mod to " + GetNewestGameVersionFolder() + "/" + Path.GetFileName(modPath));
             // Clean up
             ConfigIO.ClearExtractFolder();
-            return true;
+            return LogOutput("Installed mod to " + GetNewestGameVersionFolder() + "/" + Path.GetFileName(modPath),
+                             ErrorCode.Success,
+                             ActionCode.Install);
         }
 
         public bool UninstallMod(string pkID)

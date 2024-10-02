@@ -52,32 +52,26 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
             break;
 
         case ArgumentParser.ArgumentType.Toggle:
-            Console.WriteLine("Toggling mod: "+ arg.value);
             modManager.ToggleMod(arg.value);
             break;
         
         case ArgumentParser.ArgumentType.List:
-            Console.WriteLine("Listing mods: "+ arg.value);
             modManager.ListMods(arg.value);
 
             break;
         case ArgumentParser.ArgumentType.Install:
-            Console.WriteLine("Running install command");
             modManager.InstallMod(arg.value);
             break;
 
         case ArgumentParser.ArgumentType.Uninstall:
-            Console.WriteLine("Running uninstall command");
             modManager.UninstallMod(arg.value);
             break;
 
         case ArgumentParser.ArgumentType.MoveToNew:
-            Console.WriteLine("Running move-to-new command");
             modManager.MoveToNewestGameVersion(arg.value);
             break;
 
         case ArgumentParser.ArgumentType.SetAll:
-            Console.WriteLine("Running set-all command");
             if(arg.value == "enabled")
             {
                 modManager.ActivateAllMods();
@@ -88,33 +82,24 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
             }
             break;
 
+        case ArgumentParser.ArgumentType.Output:
+            switch (arg.value)
+            {
+                case "json":
+                    modManager.JsonOutput = true;
+                    break;
+                case "default":
+                    modManager.JsonOutput = false;
+                    break;
+                default:
+                    Console.WriteLine("Unknown output format");
+                    break;
+            }
+            break;
+
+
         default:
             Console.WriteLine("Unknown command");
             break;
     }
 }
-
-
-/*
-List<string> strings = modManager.GetGameVersionFoldersSorted();
-System.Console.WriteLine(strings.Count);
-foreach (string str in strings)
-{
-    Console.WriteLine(str);
-}
-
-string newest = modManager.GetNewestGameVersionFolder();
-Console.WriteLine(newest);
-
-List<ModInfo> mods = modManager.GetInstalledMods(newest);
-foreach (ModInfo mod in mods)
-{
-    System.Console.WriteLine("_--------------------------");
-    Console.WriteLine(mod.ModName);
-    Console.WriteLine(mod.ModID);
-    Console.WriteLine(mod.Author);
-    Console.WriteLine(mod.Version);
-    Console.WriteLine(mod.Description);
-    Console.WriteLine(mod.LocalFileName);
-    Console.WriteLine(mod.IsEnabled);
-}*/
