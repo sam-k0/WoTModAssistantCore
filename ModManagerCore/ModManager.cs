@@ -333,17 +333,27 @@ namespace ModAssistant
             return true;
         }
 
-        public void ListMods(string keyword)
+        public Output ListMods(string keyword)
         {
+            List<string> outputs = new List<string>();
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
             foreach (ModInfo mod in installedMods)
             {
                 if (mod.ModName.Contains(keyword) ||(keyword == "all"))
                 {
-                    System.Console.WriteLine("-----------------------");
-                    System.Console.WriteLine(mod.ToString());
+                    switch (JsonOutput)
+                    {
+                        case true:
+                            outputs.Add(JsonConvert.SerializeObject(mod)); // Add the json string to the list
+                            break;
+                        case false:
+                            Console.WriteLine("-----------------------");
+                            Console.WriteLine(mod.ToString());
+                            break;
+                    }
                 }
             }
+            return new Output(JsonConvert.SerializeObject(outputs), ErrorCode.Success, ActionCode.List);
         }
 
         public void MoveToNewestGameVersion(string pkID)
