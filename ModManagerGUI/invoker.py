@@ -3,7 +3,7 @@ import sys
 import os
 import json
 
-class Mod:
+class Mod: # mirrors the Mod class in ModManagerCore
     def __init__(self, name:str, wgid:str, pckid:str, version:str, desc:str, localfilename:str, isenabled:bool):
         self.name = name
         self.wgid = wgid
@@ -13,6 +13,8 @@ class Mod:
         self.localfilename = localfilename
         self.isenabled = isenabled
 
+    def __repr__(self) -> str:
+        return f"{self.name} (v{self.version}) - {self.pckid}"
 
 class ModManagerCore:
     def __init__(self):
@@ -28,8 +30,8 @@ class ModManagerCore:
                    jmod["LocalFileName"], 
                    jmod["IsEnabled"])
 
-    def parse_mods_list(self, output:str):
-            parent = json.loads(out)
+    def __parse_mods_list(self, output:str):
+            parent = json.loads(output)
             message_raw = parent["message"] # json escaped string
             errcode = parent["errorCode"]
             actioncode = parent["actionCode"]
@@ -40,6 +42,11 @@ class ModManagerCore:
             for modstr in message:
                 mods.append(self.__parse_mod(modstr))
             return mods, errcode, actioncode
+    
+    def get_mods_list(self):
+        arglist = ["--list", "all"]
+        out = self.invoke(arglist)
+        return self.__parse_mods_list(out)
 
     def invoke(self, args:list, json_output=True):
         # prepend args list with json_args if json_output is True
