@@ -26,6 +26,7 @@ if (argumentParser.ValidArguments.Count == 0)
 }
 
 
+Output output;
 foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
 {
     switch (arg.type)
@@ -49,14 +50,18 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
             break;
 
         case ArgumentParser.ArgumentType.Toggle:
-            modManager.ToggleMod(arg.value);
+            output= modManager.ToggleMod(arg.value);
+            if(modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
+            }
             break;
         
         case ArgumentParser.ArgumentType.List:
-            var o = modManager.ListMods(arg.value);
+            output= modManager.ListMods(arg.value);
             if(modManager.JsonOutput)
             {
-                Console.WriteLine(o.GetFullJson());
+                Console.WriteLine(output.GetFullJson());
             }
 
             break;

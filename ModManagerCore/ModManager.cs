@@ -277,7 +277,7 @@ namespace ModAssistant
             return false;
         }
 
-        public bool ToggleMod(string pkID){
+        public Output ToggleMod(string pkID){
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
             foreach (ModInfo mod in installedMods)
             {
@@ -287,24 +287,21 @@ namespace ModAssistant
                     if (mod.IsEnabled)
                     {
                         // Disable the mod
-                        File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + mod.LocalFileName + ".disabled");
-                        System.Console.WriteLine("Disabled mod " + mod.ModName+ $" ({mod.PackageID})");
-                        return true;
+                        File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + mod.LocalFileName + ".disabled");                        
+                        return LogOutput("Disabled mod " + mod.ModName+ $" ({mod.PackageID})", ErrorCode.Success, ActionCode.Toggle);
                     }
                     else
                     {
                         // Enable the mod
                         // Remove the .disabled extension
                         string nameWithoutDisabled = mod.LocalFileName.Substring(0, mod.LocalFileName.Length - ".disabled".Length);
-
                         File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + nameWithoutDisabled);
-                        System.Console.WriteLine("Enabled mod " + mod.ModName+ $" ({mod.PackageID})");
-                        return true;
+                        return LogOutput("Enabled mod " + mod.ModName+ $" ({mod.PackageID})", ErrorCode.Success, ActionCode.Toggle);
                     }
                 }
             }
             Console.WriteLine("Mod not found");
-            return false;
+            return LogOutput("Mod not found", ErrorCode.ModNotFound, ActionCode.Toggle);
         }
 
         public bool ActivateAllMods()
