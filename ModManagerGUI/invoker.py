@@ -3,12 +3,64 @@ import sys
 import os
 import json
 
-def invoke(args:list,mmpath="/home/sam/Applications/WoTMod/ModManagerCore", json_output=True):
-    args.insert(0, mmpath)
-    args.append("-o")
-    args.append("json")
-    print(args)
-    popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-    popen.wait()
-    output = popen.stdout.read()
-    return output
+class Mod:
+    def __init__(self, name:str, wgid:str, pckid:str, version:str, desc:str, localfilename:str, isenabled:bool):
+        self.name = name
+        self.wgid = wgid
+        self.pckid = pckid
+        self.version = version
+        self.desc = desc
+        self.localfilename = localfilename
+        self.isenabled = isenabled
+
+
+class ModManagerCore:
+    def __init__(self):
+        self.installation_path ="/home/sam/Applications/WoTMod/ModManagerCore"
+
+    def __parse_mod(self, jstr:str):
+        jmod = json.loads(jstr)
+        return Mod(jmod["ModName"],
+                   jmod["ModID"],
+                   jmod["PackageID"], 
+                   jmod["Version"], 
+                   jmod["Description"], 
+                   jmod["LocalFileName"], 
+                   jmod["IsEnabled"])
+
+    def parse_mods_list(self, output:str):
+            parent = json.loads(out)
+            message_raw = parent["message"] # json escaped string
+            errcode = parent["errorCode"]
+            actioncode = parent["actionCode"]
+
+            message = json.loads(message_raw)
+            # parse every element in message list to json and create a Mod object
+            mods = []
+            for modstr in message:
+                mods.append(self.__parse_mod(modstr))
+            return mods, errcode, actioncode
+
+    def invoke(self, args:list, json_output=True):
+        # prepend args list with json_args if json_output is True
+        if json_output:
+            args = ["-o","json"] + args
+        # prepend installation path to args list
+        args = [self.installation_path] + args
+        # invoke the ModManagerCore with the args list
+        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        popen.wait()
+        output = popen.stdout.read()
+        return output
+    
+
+if __name__ == '__main__':
+    core = ModManagerCore()
+    arglist = ["--list", "all"]
+    out = core.invoke(arglist)
+    mods, errcode, actioncode = core.parse_mods_list(out)
+
+    print(mods[0].name)
+
+
+    sys.exit(0)

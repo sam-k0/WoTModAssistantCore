@@ -15,9 +15,16 @@ class MainWindow(QtWidgets.QWidget):
         self.hello = ["Hello World!"]
         self.button = QtWidgets.QPushButton("Click me!")
         self.text = QtWidgets.QLabel("Hello World", alignment=QtCore.Qt.AlignCenter)   
+        # top bar text 
+        self.setWindowTitle("Mod Manager")
+        self.toptext = QtWidgets.QLabel("install directory set to xx", alignment=QtCore.Qt.AlignmentFlag.AlignTop)
+
         self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.addWidget(self.toptext)
         self.layout.addWidget(self.text)
         self.layout.addWidget(self.button)
+
+
 
         self.button.clicked.connect(self.magic)
     

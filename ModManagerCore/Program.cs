@@ -2,11 +2,8 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using ModAssistant;
-
 // Get compilation date
 DateTime buildDate = new FileInfo(Assembly.GetExecutingAssembly().Location).LastWriteTime;
-
-Console.WriteLine("WoTModAssistant Core ver. "+buildDate.ToString("yyyy.MM.dd"));
 
 ArgumentParser argumentParser;
 try
@@ -56,7 +53,11 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
             break;
         
         case ArgumentParser.ArgumentType.List:
-            modManager.ListMods(arg.value);
+            var o = modManager.ListMods(arg.value);
+            if(modManager.JsonOutput)
+            {
+                Console.WriteLine(o.GetFullJson());
+            }
 
             break;
         case ArgumentParser.ArgumentType.Install:

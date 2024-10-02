@@ -32,6 +32,11 @@ namespace ModAssistant
             this.errorCode = code;
             this.actionCode = actionCode;
         }
+
+        public string GetFullJson()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
     }
     public class ModManager
     {
@@ -344,7 +349,9 @@ namespace ModAssistant
                     switch (JsonOutput)
                     {
                         case true:
-                            outputs.Add(JsonConvert.SerializeObject(mod)); // Add the json string to the list
+                            string json = JsonConvert.SerializeObject(mod);
+                            //System.Console.WriteLine(json);
+                            outputs.Add(json); // Add the json string to the list
                             break;
                         case false:
                             Console.WriteLine("-----------------------");
