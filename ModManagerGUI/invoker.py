@@ -48,6 +48,11 @@ class ModManagerCore:
         out = self.invoke(arglist)
         return self.__parse_mods_list(out)
 
+    def install_mod(self, filename:str):
+        arglist = ["--install", filename]
+        out = self.invoke(arglist)
+        return out
+
     def invoke(self, args:list, json_output=True):
         # prepend args list with json_args if json_output is True
         if json_output:
