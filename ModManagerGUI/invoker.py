@@ -48,8 +48,25 @@ class ModManagerCore:
         out = self.invoke(arglist)
         return self.__parse_mods_list(out)
 
+    def get_mod(self, pckid:str):
+        Exception("Not implemented")
+        arglist = ["--list", pckid]
+        out = self.invoke(arglist)
+        mods, errcode, actioncode = self.__parse_mods_list(out)
+        return mods[0]
+
     def install_mod(self, filename:str):
         arglist = ["--install", filename]
+        out = self.invoke(arglist)
+        return out
+    
+    def uninstall_mod(self, pckid:str):
+        arglist = ["--uninstall", pckid]
+        out = self.invoke(arglist)
+        return out
+    
+    def move_mods(self, keyword:str):
+        arglist = ["--move", keyword]
         out = self.invoke(arglist)
         return out
 

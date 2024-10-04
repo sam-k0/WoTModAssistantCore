@@ -19,10 +19,13 @@ class MainWindow(QtWidgets.QWidget):
         font.setBold(True)
         self.lbl_installed.setFont(font)
 
-        self.lbl_installdir = QtWidgets.QLabel("Install directory set to "+self.myinvoker.installation_path, alignment=QtCore.Qt.AlignTop)
+        self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: "+self.myinvoker.installation_path, alignment=QtCore.Qt.AlignTop)
+        # TODO: Make this actually reflect the games mod directory
+        self.lbl_moddir = QtWidgets.QLabel("Managing mods from: "+"C:\\Games\\WoT\\mods\\1.26.0.2", alignment=QtCore.Qt.AlignTop)
         # make font smaller for the install directory label
         font.setPointSize(8)
         self.lbl_installdir.setFont(font)
+        self.lbl_moddir.setFont(font)
 
         self.lbl_details = QtWidgets.QLabel("Details", alignment=QtCore.Qt.AlignCenter)
         self.lbl_description = QtWidgets.QLabel("Description", alignment=QtCore.Qt.AlignCenter, wordWrap=True)
@@ -34,23 +37,26 @@ class MainWindow(QtWidgets.QWidget):
 
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
         self.btn_install = QtWidgets.QPushButton("Install mod")
+        self.btn_moveall = QtWidgets.QPushButton("Import mods from older game version")
 
         # Set up layout
-        self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.addWidget(self.lbl_installdir)
-        self.layout.addWidget(self.lbl_installed)
-        self.layout.addWidget(self.mod_list_view)
-        self.layout.addWidget(self.lbl_details)
-        self.layout.addWidget(self.lbl_description)
+        self.mainlayout = QtWidgets.QVBoxLayout(self)
+        self.mainlayout.addWidget(self.lbl_installdir)
+        self.mainlayout.addWidget(self.lbl_moddir)
+        self.mainlayout.addWidget(self.lbl_installed)
+        self.mainlayout.addWidget(self.mod_list_view)
+        self.mainlayout.addWidget(self.lbl_details)
+        self.mainlayout.addWidget(self.lbl_description)
         # horizontal spacer
-        self.layout.addStretch()
+        self.mainlayout.addStretch()
 
-        self.layout.addWidget(self.btn_refresh)
+        self.mainlayout.addWidget(self.btn_refresh)
         # 2 buttons in a horizontal layout
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_toggle)
         self.hlayout.addWidget(self.btn_install)
-        self.layout.addLayout(self.hlayout)
+        self.mainlayout.addLayout(self.hlayout)
+        self.mainlayout.addWidget(self.btn_moveall)
 
         # Connect button click to magic function
         self.btn_refresh.clicked.connect(self.reload_mods)
@@ -120,7 +126,7 @@ class MainWindow(QtWidgets.QWidget):
             return
 
         mod:invoker.Mod = index.data(QtCore.Qt.UserRole)
-        secondary = ModInfoWindow(mod)
+        secondary = ModInfoWindow(mod, self)
         secondary.exec()
         # Reload mods in case the mod was toggled or changed
         self.reload_mods()
@@ -139,6 +145,12 @@ class MainWindow(QtWidgets.QWidget):
         # refresh the mod list
         self.reload_mods()
         
+    #TODO: Implement this
+    @QtCore.Slot()
+    def move_mods(self, keyword:str):
+        response_output = self.myinvoker.move_mods(keyword)
+        # handle response
+        self.show_error("Not implemented", "Error: Not implemented")
 
     def show_error(self, message:str, title:str):
         msg = QtWidgets.QMessageBox()
@@ -149,12 +161,13 @@ class MainWindow(QtWidgets.QWidget):
 
 
 class ModInfoWindow(QtWidgets.QDialog):
-    def __init__(self, mod:invoker.Mod):
+    def __init__(self, mod:invoker.Mod, parent_window):
         super().__init__()
 
         self.mod = mod
+        self.myinvoker:invoker.ModManagerCore = parent_window.myinvoker
         self.setWindowTitle("Mod Info")
-        self.layout = QtWidgets.QVBoxLayout(self)
+        self.mainlayout = QtWidgets.QVBoxLayout(self)
         self.lbl_name = QtWidgets.QLabel(mod.name)
         self.lbl_version = QtWidgets.QLabel("Version: "+mod.version)
         self.lbl_pckid = QtWidgets.QLabel("Package ID: "+mod.pckid)
@@ -163,21 +176,25 @@ class ModInfoWindow(QtWidgets.QDialog):
         # buttons for uninstalling and toggling
         self.btn_uninstall = QtWidgets.QPushButton("Uninstall")
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
+        self.btn_wgmods = QtWidgets.QPushButton("Show on wgmods.net")
         
 
-        self.layout.addWidget(self.lbl_name)
-        self.layout.addWidget(self.lbl_version)
-        self.layout.addWidget(self.lbl_wgid)
-        self.layout.addWidget(self.lbl_pckid)
-        self.layout.addWidget(self.lbl_desc)
+        self.mainlayout.addWidget(self.lbl_name)
+        self.mainlayout.addWidget(self.lbl_version)
+        self.mainlayout.addWidget(self.lbl_wgid)
+        self.mainlayout.addWidget(self.lbl_pckid)
+        self.mainlayout.addWidget(self.lbl_desc)
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_uninstall)
         self.hlayout.addWidget(self.btn_toggle)
-        self.layout.addLayout(self.hlayout)
-        self.setLayout(self.layout)
+        self.mainlayout.addLayout(self.hlayout)
+        self.setLayout(self.mainlayout)
+        self.mainlayout.addWidget(self.btn_wgmods)
 
         # connect magic
         self.btn_uninstall.clicked.connect(self.uninstall_mod)
+        self.btn_toggle.clicked.connect(self.toggle_mod)
+        self.btn_wgmods.clicked.connect(self.show_wgmods) 
 
     @QtCore.Slot()
     def uninstall_mod(self):
@@ -193,13 +210,31 @@ class ModInfoWindow(QtWidgets.QDialog):
 
         if ret == QtWidgets.QMessageBox.Yes:
             # destroy the parent window
-            self.close()
+            # uninstall the mod
+            try:
+                print("Uninstalling mod: ", self.mod.pckid)
+                self.myinvoker.uninstall_mod(self.mod.pckid)
+            except Exception as e:
+                print("Could not uninstall mod: ", e)
 
+            self.close()
         pass
 
+    #TODO: Implement this
     @QtCore.Slot()
     def toggle_mod(self):
         pass
+
+    @QtCore.Slot()
+    def show_wgmods(self):
+        if self.mod.wgid != "unknown":
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://wgmods.net/"+self.mod.wgid))
+        else:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setText("This mod is not available on wgmods.net.\nThis may occur if you installed the mod manually.")
+            msg.setWindowTitle("Mod not available")
+            msg.exec()
 
     
 
