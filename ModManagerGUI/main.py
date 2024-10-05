@@ -161,6 +161,9 @@ class MainWindow(QtWidgets.QWidget):
             if ret == QtWidgets.QMessageBox.Yes:
                 response_output = self.myinvoker.move_mods(keyword)
                 # handle response json
+                print(response_output)
+
+
         else:
             # not implemented
             pass
@@ -184,6 +187,8 @@ class ModInfoWindow(QtWidgets.QDialog):
 
         self.mod = mod
         self.myinvoker:invoker.ModManagerCore = parent_window.myinvoker
+        self.parent_window = parent_window
+
         self.setWindowTitle("Mod Info")
         self.mainlayout = QtWidgets.QVBoxLayout(self)
         self.lbl_name = QtWidgets.QLabel(mod.name)
@@ -241,7 +246,10 @@ class ModInfoWindow(QtWidgets.QDialog):
     #TODO: Implement this
     @QtCore.Slot()
     def toggle_mod(self):
-        pass
+        out = self.myinvoker.toggle_mod(self.mod.pckid)
+        print(out)
+        self.parent_window.reload_mods()
+
 
     @QtCore.Slot()
     def show_wgmods(self):

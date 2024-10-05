@@ -78,6 +78,12 @@ class ModManagerCore:
         out = self.invoke(arglist)
         return out
     
+    def toggle_mod(self, pckid:str, enable:bool):
+        arg = "enable" if enable else "disable"
+        arglist = ["--toggle", pckid, arg]
+        out = self.invoke(arglist)
+        return out
+    
     #TODO: call this from the GUI
     def set_all_mods(self, enable:bool):
         arg = "enable" if enable else "disable"
