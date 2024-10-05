@@ -66,7 +66,7 @@ class ModManagerCore:
         return out
     
     def move_mods(self, keyword:str):
-        arglist = ["--move", keyword]
+        arglist = ["--move-to-new", keyword]
         out = self.invoke(arglist)
         return out
     
@@ -75,6 +75,13 @@ class ModManagerCore:
         if keyword not in allowed:
             raise Exception(f"Keyword must be one of {allowed}")
         arglist = ["--mod-folder", keyword]
+        out = self.invoke(arglist)
+        return out
+    
+    #TODO: call this from the GUI
+    def set_all_mods(self, enable:bool):
+        arg = "enable" if enable else "disable"
+        arglist = ["--set-all", arg]
         out = self.invoke(arglist)
         return out
 

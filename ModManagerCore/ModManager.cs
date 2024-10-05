@@ -322,7 +322,7 @@ namespace ModAssistant
             return LogOutput("Mod not found", ErrorCode.ModNotFound, ActionCode.Toggle);
         }
 
-        public bool ActivateAllMods()
+        public Output ActivateAllMods()
         {
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
             foreach (ModInfo mod in installedMods)
@@ -334,11 +334,10 @@ namespace ModAssistant
                     File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + nameWithoutDisabled);
                 }
             }
-            System.Console.WriteLine("Activated all mods");
-            return true;
+            return LogOutput("Activated all mods", ErrorCode.Success, ActionCode.SetAll);
         }
 
-        public bool DeactivateAllMods()
+        public Output DeactivateAllMods()
         {
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
             foreach (ModInfo mod in installedMods)
@@ -349,8 +348,7 @@ namespace ModAssistant
                     File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + mod.LocalFileName + ".disabled");
                 }
             }
-            System.Console.WriteLine("Deactivated all mods");
-            return true;
+            return LogOutput("Deactivated all mods", ErrorCode.Success, ActionCode.SetAll);
         }
 
         public Output ListMods(string keyword)

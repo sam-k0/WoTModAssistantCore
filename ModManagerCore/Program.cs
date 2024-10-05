@@ -80,11 +80,16 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
         case ArgumentParser.ArgumentType.SetAll:
             if(arg.value == "enabled")
             {
-                modManager.ActivateAllMods();
+                output = modManager.ActivateAllMods();
             
             }else if(arg.value == "disabled")
             {
-                modManager.DeactivateAllMods();
+                output = modManager.DeactivateAllMods();
+            }
+
+            if(modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
             }
             break;
 

@@ -148,9 +148,27 @@ class MainWindow(QtWidgets.QWidget):
     #TODO: Implement this
     @QtCore.Slot()
     def move_mods(self, keyword:str):
-        response_output = self.myinvoker.move_mods(keyword)
-        # handle response
-        self.show_error("Not implemented", "Error: Not implemented")
+        if keyword == "all":
+            # show confirmation dialog
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Question)
+            msg.setText("This will import all mods from your previous game version to the current one.\nAre you sure you want to do this?")
+            msg.setWindowTitle("Move all mods")
+            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            msg.setDefaultButton(QtWidgets.QMessageBox.No)
+            ret = msg.exec()
+
+            if ret == QtWidgets.QMessageBox.Yes:
+                response_output = self.myinvoker.move_mods(keyword)
+                # handle response json
+        else:
+            # not implemented
+            pass
+            self.show_error("Not implemented", "Error: Not implemented")
+        self.reload_mods()
+
+
+
 
     def show_error(self, message:str, title:str):
         msg = QtWidgets.QMessageBox()
