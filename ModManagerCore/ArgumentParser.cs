@@ -48,6 +48,9 @@ public class ArgumentParser
 
         [Description("--output [json,default]: Set output format for console, allowed values: json, default")]
         Output,
+
+        [Description("--mod-folder [newest,all]: Get the paths to the mod folders, allowed values: newest, all")]
+        ModFolders
     }
 
     public struct Argument{
@@ -81,6 +84,7 @@ public class ArgumentParser
         {"--move-to-new", ".*"}, // move mod to new location
         {"--set-all", "enabled|disabled"}, // set all mods to active / inactive
         {"-o", "json|default"} // output format for console
+        {"--mod-folder", "newest|all"} // get the paths to the mod folders
     };
 
 
@@ -129,6 +133,7 @@ public class ArgumentParser
                 "--move-to-new" => ArgumentType.MoveToNew,
                 "--set-all" => ArgumentType.SetAll,
                 "-o" => ArgumentType.Output,
+                "--mod-folder" => ArgumentType.ModFolders,
                 
                 _ => throw new ArgumentException($"Invalid argument (err2): {args[i]}")
             };

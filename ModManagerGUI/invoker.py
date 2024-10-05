@@ -69,6 +69,15 @@ class ModManagerCore:
         arglist = ["--move", keyword]
         out = self.invoke(arglist)
         return out
+    
+    def get_mod_folders(self, keyword:str):
+        allowed = ["newest", "all"]
+        if keyword not in allowed:
+            raise Exception(f"Keyword must be one of {allowed}")
+        arglist = ["--mod-folder", keyword]
+        out = self.invoke(arglist)
+        return out
+
 
     def invoke(self, args:list, json_output=True):
         # prepend args list with json_args if json_output is True

@@ -102,6 +102,14 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
                     break;
             }
             break;
+        
+        case ArgumentParser.ArgumentType.ModFolders:
+            output= modManager.GetModFolders(arg.value);
+            if(modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
+            }
+            break;
 
 
         default:

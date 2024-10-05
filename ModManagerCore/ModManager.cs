@@ -20,6 +20,7 @@ namespace ModAssistant
         MoveToNew = 3,
         SetAll = 4,
         List = 5,
+        GetFolders = 6,
     }
     public struct Output {
         public string message;
@@ -89,7 +90,7 @@ namespace ModAssistant
         {
             List<string> items = GetGameVersionFoldersSorted();
             return items[items.Count - 1];
-        }
+        }NewestModFolder
 
         public List<string> GetGameVersionFoldersSorted()
         {
@@ -106,6 +107,23 @@ namespace ModAssistant
             }
             items.Sort();
             return items;
+        }
+
+        // Will always be json output
+        public Output GetModFolders(string keyword)
+        {
+            if(keyword == "newest")
+            {
+                return new Output(JsonConvert.SerializeObject(GetNewestGameVersionFolder()), ErrorCode.Success, ActionCode.GetModFolders);
+            }
+            else if(keyword == "all")
+            {
+                return new Output(JsonConvert.SerializeObject(GetGameVersionFoldersSorted()), ErrorCode.Success, ActionCode.GetModFolders);
+            }
+            else
+            {
+                return new Output("Invalid keyword", ErrorCode.FilesystemFailed, ActionCode.GetModFolders);
+            }  
         }
 
         public List<ModInfo> GetInstalledMods(string gameVersionFolder)
