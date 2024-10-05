@@ -6,7 +6,19 @@ Core functionality for WoTModManager. This tool stand-alone allows for
 - searching installed mods
 - moving mods to the newest game version 
 
-Built on .NET Core, this is cross-platform, developed on Linux
+Built on .NET Core, this is cross-platform, developed on Linux.
+Please check out ModManagerCoreGUI for a graphical interface.
+
+
+## Dependencies
+- Newtonsoft.Json
+
+## Building
+To build the release version, run the following command:
+```bash
+dotnet build -c Release 
+```
+
 
 ### Usage: Table of Contents
 1. [Help Command](#help)
@@ -82,15 +94,4 @@ mod-manager --move-to-new all # move all mods
 ```bash
 mod-manager --set-all enabled # enable all mods
 mod-manager --set-all disabled # disable all mods
-```
-
-
-## Dependencies
-- Newtonsoft.Json
-
-## Building
-To build the release version, run the following command:
-```bash
-dotnet build -c Release -r linux-x64 # for linux
-dotnet build -c Release -r win-x64 # for windows
 ```

@@ -37,3 +37,6 @@ As for simplicity, `ModManagerCoreGUI` will just be referred to as `CoreGUI`.
 
 ## Dependencies
 - PySide6
+- Newtonsoft.Json
+
+Please check the project's subdirectories readme files for more information.
