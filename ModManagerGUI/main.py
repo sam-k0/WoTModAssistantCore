@@ -7,20 +7,18 @@ class MainWindow(QtWidgets.QWidget):
         super().__init__()
 
         self.myinvoker = invoker.ModManagerCore()
-        self.mods = []
 
         self.setWindowTitle("Mod Manager")
-
         # Create widgets
         self.lbl_installed = QtWidgets.QLabel("Installed", alignment=QtCore.Qt.AlignCenter )
         # make the text bold
         font = self.lbl_installed.font()
         font.setBold(True)
         self.lbl_installed.setFont(font)
-
+        # labels for settings
+        self.lbl_settings_top = QtWidgets.QLabel("Settings", alignment=QtCore.Qt.AlignCenter)
         self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: "+self.myinvoker.installation_path, alignment=QtCore.Qt.AlignTop)
-        # TODO: Make this actually reflect the games mod directory
-        self.lbl_moddir = QtWidgets.QLabel("Managing mods from: "+"C:\\Games\\WoT\\mods\\1.26.0.2", alignment=QtCore.Qt.AlignTop)
+        self.lbl_moddir = QtWidgets.QLabel("Managing mods from: unknown", alignment=QtCore.Qt.AlignTop)
         # make font smaller for the install directory label
         font.setPointSize(8)
         self.lbl_installdir.setFont(font)
@@ -28,7 +26,12 @@ class MainWindow(QtWidgets.QWidget):
 
         self.lbl_details = QtWidgets.QLabel("Details", alignment=QtCore.Qt.AlignCenter)
         self.lbl_description = QtWidgets.QLabel("Description", alignment=QtCore.Qt.AlignCenter, wordWrap=True)
+        # Action log will display the output of the last action / debug information
+        self.lbl_action_log = QtWidgets.QLabel("Action log", alignment=QtCore.Qt.AlignCenter)
+        self.lbl_action_log.setWordWrap(True)
 
+
+        # List view for mods
         self.mod_list_view = QtWidgets.QListView(self)
         self.mod_model = QtGui.QStandardItemModel(self.mod_list_view)
 
@@ -51,6 +54,7 @@ class MainWindow(QtWidgets.QWidget):
 
         # Set up layout
         self.mainlayout = QtWidgets.QVBoxLayout(self)
+        self.mainlayout.addWidget(self.lbl_settings_top)
         self.mainlayout.addWidget(self.lbl_installdir)
         self.mainlayout.addWidget(self.lbl_moddir)
         # set a vertical spacing line between the labels and the list view
@@ -74,21 +78,40 @@ class MainWindow(QtWidgets.QWidget):
         self.hlayout.addWidget(self.btn_enableall)
         self.hlayout.addWidget(self.btn_disableall)
         self.mainlayout.addLayout(self.hlayout)
-
         self.mainlayout.addWidget(self.btn_moveall)
+        self.mainlayout.addWidget(self.lbl_action_log)
 
         # Connect button click to magic function
-        self.btn_refresh.clicked.connect(self.reload_mods)
+        self.btn_refresh.clicked.connect(self.reload_mods_gui)
         self.btn_install.clicked.connect(self.install_mod)
         self.btn_toggle.clicked.connect(self.toggle_mod)
+        self.btn_disableall.clicked.connect(self.disable_all)
+        self.btn_enableall.clicked.connect(self.enable_all)
+        self.btn_moveall.clicked.connect(self.move_all_mods)
         # Connect the list view selection signal to a function to display mod details
         self.mod_list_view.selectionModel().currentChanged.connect(self.display_mod_details)
         # Connect right-click to show mod details
         self.mod_list_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.mod_list_view.customContextMenuRequested.connect(self.show_mod_details_window)
+
+        # Update the game mod folder label
+        self.lbl_moddir.setText("Managing mods from: "+self.myinvoker.get_newest_mod_folder())
+        # Populate the mod list
+        self.reload_mods()
     
-    @QtCore.Slot()
-    def reload_mods(self):
+    def update_action_log(self, message:str, errcode:int=0,actioncode:int=-99):
+        # only include error and action code if they are not the default
+        errmessage = f"Error! Errcode: {errcode}\n" if errcode != 0 else "Success: " # default error code is 0
+        actionmessage = f"Action code: {actioncode}" if actioncode != -99 else ""
+        self.lbl_action_log.setText(f"{errmessage} {message} ({actionmessage})")
+
+    @QtCore.Slot() # The actual function that will be called when the refresh button is clicked
+    def reload_mods_gui(self):
+        self.reload_mods(updateLog=True)
+
+    # When having to reload the mods list internally, 
+    # use this function to avoid updating the action log and possibly overwriting an error message
+    def reload_mods(self, updateLog:bool=False):
         try:
             mods, err, action = self.myinvoker.get_mods_list()
             # reset model
@@ -100,6 +123,9 @@ class MainWindow(QtWidgets.QWidget):
                 item.setData(mod, QtCore.Qt.UserRole)
                 item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
                 self.mod_model.appendRow(item)
+
+            if updateLog:
+                self.update_action_log("Successfully refreshed mods", err, action)
         except Exception as e:
             # Show qt popup message box
             self.show_error("Could not refresh mods: "+str(e), "Error: Could not refresh mods")
@@ -114,13 +140,16 @@ class MainWindow(QtWidgets.QWidget):
                 item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
                 self.mod_model.appendRow(item)
 
+
     @QtCore.Slot()
     def install_mod(self):
         # open file dialog
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select mod file")
         if filename:
             try:
-                self.myinvoker.install_mod(filename)
+                out = self.myinvoker.install_mod(filename)
+                resp, err, act = self.myinvoker.parse_response(out)
+                self.update_action_log(resp, err, act)
                 self.reload_mods()
             except Exception as e:
                 self.show_error("Could not install mod: "+str(e), "Error: Could not install mod")
@@ -161,32 +190,48 @@ class MainWindow(QtWidgets.QWidget):
         mod:invoker.Mod = index.data(QtCore.Qt.UserRole)
         print("Toggling mod: ", mod.name)
         out = self.myinvoker.toggle_mod(mod.pckid)
-        print(out)
-
+        resp, err, act = self.myinvoker.parse_response(out)
+        self.update_action_log(resp, err, act)
         # refresh the mod list
         self.reload_mods()
         
-    #TODO: Implement this
     @QtCore.Slot()
-    def move_mods(self, keyword:str):
-        if keyword == "all":
-            # show confirmation dialog
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Question)
-            msg.setText("This will import all mods from your previous game version to the current one.\nAre you sure you want to do this?")
-            msg.setWindowTitle("Move all mods")
-            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-            msg.setDefaultButton(QtWidgets.QMessageBox.No)
-            ret = msg.exec()
+    def disable_all(self):
+        out = self.myinvoker.set_all_mods(False)
+        resp, err, act = self.myinvoker.parse_response(out)
+        self.update_action_log(resp, err, act)
+        self.reload_mods()
+    
+    @QtCore.Slot()
+    def enable_all(self):
+        out = self.myinvoker.set_all_mods(True)
+        resp, err, act = self.myinvoker.parse_response(out)
+        self.update_action_log(resp, err, act)
+        self.reload_mods()
 
-            if ret == QtWidgets.QMessageBox.Yes:
-                response_output = self.myinvoker.move_mods(keyword)
-                # handle response json
-                print(response_output)
-        else:
-            # not implemented
-            pass
-            self.show_error("Not implemented", "Error: Not implemented")
+    @QtCore.Slot()
+    def move_all_mods(self):
+        # show confirmation dialog
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Question)
+        msg.setText("This will import all mods from your previous game version to the current one.\nAre you sure you want to do this?")
+        msg.setWindowTitle("Move all mods")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        msg.setDefaultButton(QtWidgets.QMessageBox.No)
+        ret = msg.exec()
+
+        if ret == QtWidgets.QMessageBox.Yes:
+            response_output = self.myinvoker.move_mods("all")
+            # handle response jsonself.lbl_moddir.setText("Managing mods from: "+self.myinvoker.get_mod_folders("newest"))
+            response, err, act = self.myinvoker.parse_response(response_output)
+            self.update_action_log(response, err, act)
+            # Show error if there was an error
+            if err != 0:
+                # get all detected mod folders
+                mod_folders = self.myinvoker.get_all_mod_folders()
+
+                self.show_error(f"Could not move mods as you only have one mod folder.\nDetected mod folders ({len(mod_folders)}):\n"+str(mod_folders), "Error: Could not move mods")
+
         self.reload_mods()
 
     def show_error(self, message:str, title:str):
@@ -201,9 +246,9 @@ class ModInfoWindow(QtWidgets.QDialog):
     def __init__(self, mod:invoker.Mod, parent_window):
         super().__init__()
 
-        self.mod = mod
+        self.mod:invoker.Mod = mod
         self.myinvoker:invoker.ModManagerCore = parent_window.myinvoker
-        self.parent_window = parent_window
+        self.parent_window:MainWindow = parent_window
 
         self.setWindowTitle("Mod Info")
         self.mainlayout = QtWidgets.QVBoxLayout(self)
@@ -245,25 +290,21 @@ class ModInfoWindow(QtWidgets.QDialog):
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         msg.setDefaultButton(QtWidgets.QMessageBox.No)
         ret = msg.exec()
-        print(ret)
 
         if ret == QtWidgets.QMessageBox.Yes:
-            # destroy the parent window
-            # uninstall the mod
-            try:
-                print("Uninstalling mod: ", self.mod.pckid)
-                self.myinvoker.uninstall_mod(self.mod.pckid)
-            except Exception as e:
-                print("Could not uninstall mod: ", e)
+            print("Uninstalling mod: ", self.mod.pckid)
+            resp = self.myinvoker.uninstall_mod(self.mod.pckid)
+            msg, err, act = self.myinvoker.parse_response(resp)
+            self.parent_window.update_action_log(msg, err, act)
 
             self.close()
         pass
 
-    #TODO: Implement this
     @QtCore.Slot()
     def toggle_mod(self):
         out = self.myinvoker.toggle_mod(self.mod.pckid)
-        print(out)
+        resp, err, act = self.myinvoker.parse_response(out)
+        self.parent_window.update_action_log(resp, err, act)
         self.parent_window.reload_mods()
 
 
@@ -287,5 +328,5 @@ if __name__ == '__main__':
     widget.resize(400, 500)
     widget.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
     

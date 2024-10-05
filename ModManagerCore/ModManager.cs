@@ -90,7 +90,7 @@ namespace ModAssistant
         {
             List<string> items = GetGameVersionFoldersSorted();
             return items[items.Count - 1];
-        }NewestModFolder
+        }
 
         public List<string> GetGameVersionFoldersSorted()
         {
@@ -114,15 +114,15 @@ namespace ModAssistant
         {
             if(keyword == "newest")
             {
-                return new Output(JsonConvert.SerializeObject(GetNewestGameVersionFolder()), ErrorCode.Success, ActionCode.GetModFolders);
+                return new Output(JsonConvert.SerializeObject(GetNewestGameVersionFolder()), ErrorCode.Success, ActionCode.GetFolders);
             }
             else if(keyword == "all")
             {
-                return new Output(JsonConvert.SerializeObject(GetGameVersionFoldersSorted()), ErrorCode.Success, ActionCode.GetModFolders);
+                return new Output(JsonConvert.SerializeObject(GetGameVersionFoldersSorted()), ErrorCode.Success, ActionCode.GetFolders);
             }
             else
             {
-                return new Output("Invalid keyword", ErrorCode.FilesystemFailed, ActionCode.GetModFolders);
+                return new Output("Invalid keyword", ErrorCode.FilesystemFailed, ActionCode.GetFolders);
             }  
         }
 
@@ -278,7 +278,7 @@ namespace ModAssistant
                              ActionCode.Install);
         }
 
-        public bool UninstallMod(string pkID)
+        public Output UninstallMod(string pkID)
         {
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
             foreach (ModInfo mod in installedMods)
@@ -287,12 +287,11 @@ namespace ModAssistant
                 {
                     // Delete the file
                     File.Delete(GetNewestGameVersionFolder() + "/" + mod.LocalFileName);
-                    System.Console.WriteLine("Uninstalled mod " + mod.ModName + $" ({mod.PackageID})");
-                    return true;
+                    
+                    return LogOutput("Uninstalled mod " + mod.ModName+ $" ({mod.PackageID})", ErrorCode.Success, ActionCode.Uninstall);
                 }
             }
-            Console.WriteLine("Mod not found");
-            return false;
+            return LogOutput("Mod not found", ErrorCode.ModNotFound, ActionCode.Uninstall);
         }
 
         public Output ToggleMod(string pkID){
@@ -376,13 +375,12 @@ namespace ModAssistant
             return new Output(JsonConvert.SerializeObject(outputs), ErrorCode.Success, ActionCode.List);
         }
 
-        public void MoveToNewestGameVersion(string pkID)
+        public Output MoveToNewestGameVersion(string pkID)
         {
             List<string> items = GetGameVersionFoldersSorted();
             if (items.Count < 2)
             {
-                System.Console.WriteLine("Not enough game version folders to move mods");
-                return;
+                return LogOutput("Not enough game version folders to move mods", ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
             }
             string newest = items[items.Count - 1];
             string secondNewest = items[items.Count - 2];
@@ -403,8 +401,7 @@ namespace ModAssistant
                     }
                 }
                 var num = Directory.EnumerateFiles(secondNewest, "*.wotmod").ToList().Count();
-                System.Console.WriteLine("Moved "+num+" mods from " + secondNewest + " to " + newest);
-                return;
+                return LogOutput("Moved " + num + " mods from " + secondNewest + " to " + newest, ErrorCode.Success, ActionCode.MoveToNew);
             }
             List<ModInfo> installedMods = GetInstalledMods(secondNewest);
             foreach (ModInfo mod in installedMods)
@@ -412,11 +409,10 @@ namespace ModAssistant
                 if (mod.PackageID == pkID)
                 {
                     File.Move(secondNewest + "/" + mod.LocalFileName, newest + "/" + mod.LocalFileName);
-                    System.Console.WriteLine("Moved mod " + mod.ModName + $" ({mod.PackageID}) from " + secondNewest + " to " + newest);
-                    return;
+                    return LogOutput("Moved mod " + mod.ModName + $" ({mod.PackageID}) from " + secondNewest + " to " + newest, ErrorCode.Success, ActionCode.MoveToNew);
                 }
             }
-            System.Console.WriteLine("Mod ${pkID} not found in " + secondNewest);
+           return LogOutput("Mod not found", ErrorCode.ModNotFound, ActionCode.MoveToNew);
         }
 
     }

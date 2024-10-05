@@ -83,7 +83,7 @@ public class ArgumentParser
         {"--uninstall", ".*"}, // uninstall mod
         {"--move-to-new", ".*"}, // move mod to new location
         {"--set-all", "enabled|disabled"}, // set all mods to active / inactive
-        {"-o", "json|default"} // output format for console
+        {"-o", "json|default"}, // output format for console
         {"--mod-folder", "newest|all"} // get the paths to the mod folders
     };
 

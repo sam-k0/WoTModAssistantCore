@@ -66,31 +66,47 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
 
             break;
         case ArgumentParser.ArgumentType.Install:
-            modManager.InstallMod(arg.value);
+            output=modManager.InstallMod(arg.value);
+            if(modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
+            }
             break;
 
         case ArgumentParser.ArgumentType.Uninstall:
-            modManager.UninstallMod(arg.value);
+            output = modManager.UninstallMod(arg.value);
+            if (modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
+            }
             break;
 
         case ArgumentParser.ArgumentType.MoveToNew:
-            modManager.MoveToNewestGameVersion(arg.value);
+            output = modManager.MoveToNewestGameVersion(arg.value);
+            if (modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
+            }
             break;
 
         case ArgumentParser.ArgumentType.SetAll:
             if(arg.value == "enabled")
             {
                 output = modManager.ActivateAllMods();
+                if (modManager.JsonOutput)
+                {
+                    Console.WriteLine(output.GetFullJson());
+                }
             
             }else if(arg.value == "disabled")
             {
                 output = modManager.DeactivateAllMods();
+                if (modManager.JsonOutput)
+                {
+                    Console.WriteLine(output.GetFullJson());
+                }
             }
 
-            if(modManager.JsonOutput)
-            {
-                Console.WriteLine(output.GetFullJson());
-            }
             break;
 
         case ArgumentParser.ArgumentType.Output:

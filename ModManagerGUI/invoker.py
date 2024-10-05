@@ -18,7 +18,20 @@ class Mod: # mirrors the Mod class in ModManagerCore
 
 class ModManagerCore:
     def __init__(self):
-        self.installation_path ="/home/sam/Applications/WoTMod/ModManagerCore"
+        # check if the ModManagerCore is in the same
+        self.installation_path = self.__expected_core_path()
+
+    def __expected_core_path(self):
+        # Should be in *this*/Core/ModManagerCore
+        # The file on Windows is ModManagerCore.exe and on Linux it is ModManagerCore
+        installation_path = ""
+        if sys.platform == "win32":
+            installation_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core","ModManagerCore.exe")
+        elif sys.platform == "linux":
+            installation_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core", "ModManagerCore")
+        else:
+            raise Exception("Unsupported platform: "+sys.platform)
+        return installation_path
 
     def __parse_mod(self, jstr:str):
         jmod = json.loads(jstr)
@@ -43,6 +56,11 @@ class ModManagerCore:
                 mods.append(self.__parse_mod(modstr))
             return mods, errcode, actioncode
     
+    # parse the output of the ModManagerCore json response
+    def parse_response(self, output_json:str):
+        parent = json.loads(output_json)
+        return (parent["message"], parent["errorCode"], parent["actionCode"])
+
     def get_mods_list(self):
         arglist = ["--list", "all"]
         out = self.invoke(arglist)
@@ -70,6 +88,7 @@ class ModManagerCore:
         out = self.invoke(arglist)
         return out
     
+    # Raw function to get the mod folders, either returns string or list of strings in message
     def get_mod_folders(self, keyword:str):
         allowed = ["newest", "all"]
         if keyword not in allowed:
@@ -78,6 +97,22 @@ class ModManagerCore:
         out = self.invoke(arglist)
         return out
     
+    # returns a single string with the path to the newest mod folder
+    def get_newest_mod_folder(self):
+        resp = self.get_mod_folders("newest")
+        msg, err, act = self.parse_response(resp)
+        if err != 0:
+            raise Exception(f"Error code {err} in response: {msg}")
+        return msg
+    
+    def get_all_mod_folders(self)->list:
+        resp = self.get_mod_folders("all")
+        msg, err, act = self.parse_response(resp)
+        if err != 0:
+            raise Exception(f"Error code {err} in response: {msg}")
+        # the msg is a json list of strings
+        return json.loads(msg)
+    
     def toggle_mod(self, pckid:str):
         arglist = ["--toggle", pckid]
         out = self.invoke(arglist)
@@ -85,7 +120,7 @@ class ModManagerCore:
     
     #TODO: call this from the GUI
     def set_all_mods(self, enable:bool):
-        arg = "enable" if enable else "disable"
+        arg = "enabled" if enable else "disabled"
         arglist = ["--set-all", arg]
         out = self.invoke(arglist)
         return out
@@ -105,12 +140,4 @@ class ModManagerCore:
     
 
 if __name__ == '__main__':
-    core = ModManagerCore()
-    arglist = ["--list", "all"]
-    out = core.invoke(arglist)
-    mods, errcode, actioncode = core.parse_mods_list(out)
-
-    print(mods[0].name)
-
-
-    sys.exit(0)
+    print("This is the ModManagerCore invoker class")
