@@ -12,7 +12,6 @@ class MainWindow(QtWidgets.QWidget):
         self.setWindowTitle("Mod Manager")
 
         # Create widgets
-        self.btn_refresh = QtWidgets.QPushButton("Refresh mods")
         self.lbl_installed = QtWidgets.QLabel("Installed", alignment=QtCore.Qt.AlignCenter )
         # make the text bold
         font = self.lbl_installed.font()
@@ -35,14 +34,28 @@ class MainWindow(QtWidgets.QWidget):
 
         self.mod_list_view.setModel(self.mod_model)
 
+        self.btn_refresh = QtWidgets.QPushButton("Refresh mods")
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
         self.btn_install = QtWidgets.QPushButton("Install mod")
         self.btn_moveall = QtWidgets.QPushButton("Import mods from older game version")
+        self.btn_disableall = QtWidgets.QPushButton("Disable all mods")
+        self.btn_enableall = QtWidgets.QPushButton("Enable all mods")
+        # set button icons
+        self.btn_disableall.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
+        self.btn_enableall.setIcon(QtGui.QIcon.fromTheme("emblem-default"))
+        self.btn_refresh.setIcon(QtGui.QIcon.fromTheme("view-refresh"))
+        self.btn_toggle.setIcon(QtGui.QIcon.fromTheme("object-flip-horizontal"))
+        self.btn_install.setIcon(QtGui.QIcon.fromTheme("list-add"))
+        self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
+
 
         # Set up layout
         self.mainlayout = QtWidgets.QVBoxLayout(self)
         self.mainlayout.addWidget(self.lbl_installdir)
         self.mainlayout.addWidget(self.lbl_moddir)
+        # set a vertical spacing line between the labels and the list view
+        self.mainlayout.addSpacing(10)
+
         self.mainlayout.addWidget(self.lbl_installed)
         self.mainlayout.addWidget(self.mod_list_view)
         self.mainlayout.addWidget(self.lbl_details)
@@ -56,6 +69,12 @@ class MainWindow(QtWidgets.QWidget):
         self.hlayout.addWidget(self.btn_toggle)
         self.hlayout.addWidget(self.btn_install)
         self.mainlayout.addLayout(self.hlayout)
+        # 2 buttons in a horizontal layout
+        self.hlayout = QtWidgets.QHBoxLayout()
+        self.hlayout.addWidget(self.btn_enableall)
+        self.hlayout.addWidget(self.btn_disableall)
+        self.mainlayout.addLayout(self.hlayout)
+
         self.mainlayout.addWidget(self.btn_moveall)
 
         # Connect button click to magic function
@@ -141,6 +160,8 @@ class MainWindow(QtWidgets.QWidget):
         #toggle
         mod:invoker.Mod = index.data(QtCore.Qt.UserRole)
         print("Toggling mod: ", mod.name)
+        out = self.myinvoker.toggle_mod(mod.pckid)
+        print(out)
 
         # refresh the mod list
         self.reload_mods()
@@ -162,16 +183,11 @@ class MainWindow(QtWidgets.QWidget):
                 response_output = self.myinvoker.move_mods(keyword)
                 # handle response json
                 print(response_output)
-
-
         else:
             # not implemented
             pass
             self.show_error("Not implemented", "Error: Not implemented")
         self.reload_mods()
-
-
-
 
     def show_error(self, message:str, title:str):
         msg = QtWidgets.QMessageBox()
@@ -268,7 +284,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication([])
 
     widget = MainWindow()
-    widget.resize(400, 300)
+    widget.resize(400, 500)
     widget.show()
 
     sys.exit(app.exec_())
