@@ -56,6 +56,9 @@ jobs:
       run: |
         echo "TAG_NAME=win_$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
+    - name: Debug TAG_NAME
+      run: echo "Current TAG_NAME is ${{ env.TAG_NAME }}"
+
     - name: Create a new release
       id: create_release
       uses: actions/create-release@v1
