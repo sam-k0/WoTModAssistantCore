@@ -52,26 +52,23 @@ jobs:
         cd ModManagerGUI\dist
         powershell -Command "Compress-Archive -Path ModManagerGUI -DestinationPath ModManagerGUI_win.zip"
 
-    - name: Get current date for tag
-      id: get_date
-      run: |
-        echo "TAG_NAME=win_$(date +'%Y.%m.%d')" >> $GITHUB_ENV
-
-    - name: Create a new release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get the latest release upload URL
+      id: get_release
+      uses: actions/github-script@v6
       with:
-        tag_name: ${{ env.TAG_NAME }}  # Tag name dynamically generated based on the date
-        release_name: "Release ${{ env.TAG_NAME }}"  # Optional, you can change the name
-        draft: false  # Set to true if you want to create a draft release
-        prerelease: false  # Set to true if it's a prerelease
+        script: |
+          const latestRelease = await github.rest.repos.getLatestRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+          // Remove the {?name,label} part from upload_url
+          const cleanedUploadUrl = latestRelease.data.upload_url.split("{")[0];
+          return cleanedUploadUrl;
 
     - name: Upload ModManagerGUI artifact to release
       uses: actions/upload-release-asset@v1
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ steps.get_release.outputs.result }}
         asset_path: ModManagerGUI\dist\ModManagerGUI_win.zip
         asset_name: ModManagerGUI_win.zip
         asset_content_type: application/zip
