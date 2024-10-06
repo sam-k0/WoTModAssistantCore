@@ -43,7 +43,8 @@ jobs:
 
     - name: Build ModManagerGUI with PyInstaller
       run: |
-        cd ../ModManagerGUI
+        cd ModManagerGUI  # Change to the ModManagerGUI directory
+        ls  # List contents to debug if needed
         pyinstaller --add-data "../publish/Core:Core" --name ModManagerGUI --windowed main.py
 
     - name: Artifacts
