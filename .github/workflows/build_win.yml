@@ -61,12 +61,12 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
           });
-          return latestRelease.data.id;
-    
+          return latestRelease.data.upload_url;
+
     - name: Upload ModManagerGUI artifact to release
       uses: actions/upload-release-asset@v1
       with:
-        upload_url: ${{ github.event.repository.releases_url }}/latest/assets?name=ModManagerGUI_win.zip
+        upload_url: ${{ steps.get_release.outputs.result }}
         asset_path: ModManagerGUI\dist\ModManagerGUI_win.zip
         asset_name: ModManagerGUI_win.zip
         asset_content_type: application/zip
