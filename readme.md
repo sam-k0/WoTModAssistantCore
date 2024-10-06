@@ -1,6 +1,7 @@
 # ModManagerCoreGUI
 [![Build for Linux](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_linux.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_linux.yml)
 
+[![Build for Windows](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_win.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_win.yml)
 
 The GUI application for interacting with ModManagerCore.
 
@@ -40,7 +41,13 @@ As for simplicity, `ModManagerCoreGUI` will just be referred to as `CoreGUI`.
 5. Now, run the `CoreGUI` and you should see it automatically listing mods.
 
 ### Windows
-...to be done.
+> [!IMPORTANT]
+> Please download the latest `artifacts` build from the `actions->Build Windows` workflow run.
+
+1. Download the `.zip` archive and extract.
+2. Inside it, find the `_internal/Core` folder.
+3. Run `ModManagerCore.exe` and set up your World Of Tanks install path (the directory where `WorldOfTanks.exe` resides.)
+4. Run the `CoreGUI` from the main directory.
 
 ## Dependencies
 - PySide6
