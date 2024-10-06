@@ -50,10 +50,25 @@ jobs:
     - name: Zip ModManagerGUI directory
       run: |
         cd ModManagerGUI\dist
-        powershell -Command "Compress-Archive -Path ModManagerGUI -DestinationPath ModManagerGUI.zip"
+        powershell -Command "Compress-Archive -Path ModManagerGUI -DestinationPath ModManagerGUI_win.zip"
 
-    - name: Upload ModManagerGUI artifact
-      uses: actions/upload-artifact@v3
+    - name: Get the latest release
+      id: get_release
+      uses: actions/github-script@v6
       with:
-        name: ModManagerGUI
-        path: ModManagerGUI\dist\ModManagerGUI.zip  # Path to the zip file
+        script: |
+          const latestRelease = await github.rest.repos.getLatestRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+          return latestRelease.data.id;
+    
+    - name: Upload ModManagerGUI artifact to release
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.repository.releases_url }}/latest/assets?name=ModManagerGUI_win.zip
+        asset_path: ModManagerGUI\dist\ModManagerGUI_win.zip
+        asset_name: ModManagerGUI_win.zip
+        asset_content_type: application/zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
