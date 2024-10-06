@@ -41,7 +41,7 @@ namespace ModAssistant
     }
     public class ModManager
     {
-        public Config ModManagerConfig { get; private set; }
+        public Config? ModManagerConfig { get; private set; }
         public bool JsonOutput { get; set; } = false;
 
         private Output LogOutput(string message, ErrorCode code, ActionCode actionCode )
@@ -185,7 +185,8 @@ namespace ModAssistant
         public ModManager()
         {
             ConfigIO.ClearExtractFolder(); // Clean up, maybe the user closed the app while extracting
-            if ((ModManagerConfig = LoadConfig()) == null)
+            ModManagerConfig = LoadConfig();
+            if (ModManagerConfig == null)
             {
                 throw new Exception("Config file not found after loading it");
             }

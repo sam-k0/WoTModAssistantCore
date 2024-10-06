@@ -26,6 +26,10 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 As for simplicity, `ModManagerCoreGUI` will just be referred to as `CoreGUI`.
 
 ### Linux
+
+> [!TIP]
+> You can also execute the `build_linux.sh` script after setting up a venv with pyside6 and pyinstaller installed.
+
 1. Create a new directory `wotmodmanager`, and a directory called `Core` inside it.
 2. Build or install the `ModManagerCore` to the newly created `wotmodmanager/Core` directory.
 3. Install the CoreGUI in the parent folder, so that the `Core` directory one directory deeper as the `CoreGUI` executable.
