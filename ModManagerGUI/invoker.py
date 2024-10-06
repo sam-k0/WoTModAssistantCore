@@ -138,6 +138,27 @@ class ModManagerCore:
         output = popen.stdout.read()
         return output
     
+    def set_game_installation_dir(self, path:str)->bool:
+        # check if the config file exists in ./Core/config.json
+        if not os.path.isfile(os.path.join(os.path.dirname(self.installation_path), "config.json")):
+            # missing, create it
+            with open(os.path.join(os.path.dirname(self.installation_path), "config.json"), "w") as f:
+                # serialize the json object
+                f.write(json.dumps({"GameInstallDir":path}))
+            return True
+        else:
+            return False
+        
+    def get_game_installation_dir(self)->str:
+        # check if the config file exists in ./Core/config.json
+        if not os.path.isfile(os.path.join(os.path.dirname(self.installation_path), "config.json")):
+            # missing, return None
+            return None
+        else:
+            # read the file and return the GameInstallDir
+            with open(os.path.join(os.path.dirname(self.installation_path), "config.json"), "r") as f:
+                return json.loads(f.read())["GameInstallDir"]
+    
 
 if __name__ == '__main__':
     print("This is the ModManagerCore invoker class")

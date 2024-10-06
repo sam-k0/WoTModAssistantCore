@@ -1,5 +1,6 @@
 import sys 
 from PySide6 import QtCore, QtWidgets, QtGui
+import os
 import invoker
 
 class MainWindow(QtWidgets.QWidget):
@@ -93,6 +94,11 @@ class MainWindow(QtWidgets.QWidget):
         # Connect right-click to show mod details
         self.mod_list_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.mod_list_view.customContextMenuRequested.connect(self.show_mod_details_window)
+
+        # Make sure the Core is configured correctly
+        if not self.myinvoker.get_game_installation_dir():
+            self.show_error("It appears you are running this for the first time. Please select the game directory.", "First time setup", QtWidgets.QMessageBox.Information)
+            self.setup_game_directory()
 
         # Update the game mod folder label
         self.lbl_moddir.setText("Managing mods from: "+self.myinvoker.get_newest_mod_folder())
@@ -234,9 +240,26 @@ class MainWindow(QtWidgets.QWidget):
 
         self.reload_mods()
 
-    def show_error(self, message:str, title:str):
+    def setup_game_directory(self):
+        # open file dialog
+        while True: # do not let the user escape without selecting a valid game directory
+            foldername = QtWidgets.QFileDialog.getExistingDirectory(self, "Select game directory")
+            if foldername:
+                # check if it contains the WorldOfTanks.exe
+                if not "WorldOfTanks.exe" in os.listdir(foldername):
+                    self.show_error("This directory does not contain WorldOfTanks.exe", "Error: Invalid game directory")
+                else:
+                    break
+            else:
+                self.show_error("No directory selected, please select the game directory.", "Error: No directory selected")
+        
+        # set the game directory
+        self.myinvoker.set_game_installation_dir(foldername)
+
+
+    def show_error(self, message:str, title:str, icon=QtWidgets.QMessageBox.Critical):
         msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setIcon(icon)
         msg.setText("Error: "+message)
         msg.setWindowTitle(title)
         msg.exec()

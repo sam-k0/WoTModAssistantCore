@@ -21,6 +21,7 @@ namespace ModAssistant
         SetAll = 4,
         List = 5,
         GetFolders = 6,
+        Setup = 7,
     }
     public struct Output {
         public string message;
@@ -213,6 +214,11 @@ namespace ModAssistant
             ModInfo mod = new ModInfo(xmlstr, false, Path.GetFileName(modPath));
             ConfigIO.ClearExtractFolder();
             return mod;
+        }
+
+        public Output ConfigEmpty()
+        {
+            return LogOutput("Config file is empty", ErrorCode.FilesystemFailed, ActionCode.Setup);
         }
 
         // Expects the whole path to the .wotmod file
