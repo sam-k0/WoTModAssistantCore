@@ -47,6 +47,13 @@ jobs:
         ls  # List contents to debug if needed
         pyinstaller --add-data "../publish/Core:Core" --name ModManagerGUI --windowed main.py
 
-    - name: Artifacts
+    - name: Zip ModManagerGUI directory
       run: |
-        echo "Build can be found in ModManagerGUI/dist/ModManagerGUI"
+        cd ModManagerGUI/dist
+        zip -r ModManagerGUI.zip ModManagerGUI
+
+    - name: Upload ModManagerGUI artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ModManagerGUI
+        path: ModManagerGUI/dist/ModManagerGUI.zip  # Path to the zip file
