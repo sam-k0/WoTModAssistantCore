@@ -14,6 +14,7 @@ MacOS/darwin support is not planned but not explicitly impossible.
 - Deactivate, Activate mods
 - Import mods from previous game versions
 
+Below is a screenshot of the tool running on Linux Mint 21
 <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screen1.png" alt="Description of image" width="50%"/>
 
 Planned features:
@@ -21,6 +22,7 @@ Planned features:
 - [x] Automatic build actions for Windows
 - [ ] wgmods.net compatible mod browser integration
 - [x] Easier setup of `ModManagerCore`, integrated to the GUI
+- [ ] Localization / language support
 
 ## Installing
 Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.
@@ -69,3 +71,10 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 - Newtonsoft.Json
 
 Please check the project's subdirectories readme files for more information on how to build.
+
+### Contributing
+
+If you want to report bugs, request features or contribute to the project, please open an issue or a pull request.
+Pull requests should be made to the `dev` branch. 
+Also, please make sure your code follows `cross-platform` standards and is tested on both Windows and Linux.
+Lazy or untested PRs and issues will be closed.
