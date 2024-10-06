@@ -51,21 +51,13 @@ jobs:
         cd ModManagerGUI\dist
         powershell -Command "Compress-Archive -Path ModManagerGUI -DestinationPath ModManagerGUI_win.zip"
 
-    - name: Get current date for tag
-      id: get_date
-      run: |
-        echo "TAG_NAME=win_$(date +'%Y.%m.%d')" >> $GITHUB_ENV
-
-    - name: Debug TAG_NAME
-      run: echo "Current TAG_NAME is ${{ env.TAG_NAME }}"
-
     - name: Create a new release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ env.TAG_NAME }}
+        tag_name: win_${{ github.sha }}
         release_name: "Release ${{ env.TAG_NAME }}"  # Optional, you can change the name
         draft: false  # Set to true if you want to create a draft release
         prerelease: false  # Set to true if it's a prerelease
