@@ -62,7 +62,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ env.TAG_NAME }}  # Tag name dynamically generated based on the date
+        tag_name: ${{ github.ref}}
         release_name: "Release ${{ env.TAG_NAME }}"  # Optional, you can change the name
         draft: false  # Set to true if you want to create a draft release
         prerelease: false  # Set to true if it's a prerelease
