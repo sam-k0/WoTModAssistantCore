@@ -52,8 +52,23 @@ jobs:
         cd ModManagerGUI/dist
         zip -r ModManagerGUI.zip ModManagerGUI
 
-    - name: Upload ModManagerGUI artifact
-      uses: actions/upload-artifact@v3
+    - name: Create a new release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: ModManagerGUI
-        path: ModManagerGUI/dist/ModManagerGUI.zip  # Path to the zip file
+        tag_name: linux_${{ github.run_number }} 
+        release_name: "Linux Release ${{ github.run_number }}"  # Optional, you can change the name
+        draft: false  # Set to true if you want to create a draft release
+        prerelease: false  # Set to true if it's a prerelease
+
+    - name: Upload ModManagerGUI artifact to release
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ModManagerGUI/dist/ModManagerGUI.zip
+        asset_name: ModManagerGUI.zip
+        asset_content_type: application/zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
