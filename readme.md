@@ -29,6 +29,7 @@ As for simplicity, `ModManagerCoreGUI` will just be referred to as `CoreGUI`.
 
 > [!TIP]
 > You can also execute the `build_linux.sh` script after setting up a venv with pyside6 and pyinstaller installed.
+> Also, builds can be found as `artifacts` in the `Actions` tab.
 
 1. Create a new directory `wotmodmanager`, and a directory called `Core` inside it.
 2. Build or install the `ModManagerCore` to the newly created `wotmodmanager/Core` directory.
