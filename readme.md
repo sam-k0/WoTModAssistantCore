@@ -20,9 +20,10 @@ MacOS/darwin support is not planned but not explicitly impossible.
 - Import mods from previous game versions
 
 Planned features:
-- [ ] Automatic build actions for Linux
-- [ ] Automatic build actions for Windows
+- [x] Automatic build actions for Linux
+- [x] Automatic build actions for Windows
 - [ ] wgmods.net compatible mod browser integration
+- [ ] Easier setup of `ModManagerCore`, integrated to the GUI
 
 ## Installing
 Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.
