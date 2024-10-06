@@ -1,11 +1,11 @@
-name: Build Linux
+name: Build Windows
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
@@ -18,17 +18,17 @@ jobs:
 
     - name: Restore .NET dependencies
       run: |
-        cd ./ModManagerCore
+        cd ModManagerCore
         dotnet restore
 
     - name: Build .NET project
       run: |
-        cd ./ModManagerCore
+        cd ModManagerCore
         dotnet build --configuration Release
 
     - name: Publish .NET project
       run: |
-        cd ./ModManagerCore
+        cd ModManagerCore
         dotnet publish --configuration Release --output ../publish/Core
 
     - name: Set up Python 3.11
@@ -44,16 +44,16 @@ jobs:
     - name: Build ModManagerGUI with PyInstaller
       run: |
         cd ModManagerGUI  # Change to the ModManagerGUI directory
-        ls  # List contents to debug if needed
-        pyinstaller --add-data "../publish/Core:Core" --name ModManagerGUI --windowed main.py
+        dir  # List contents to debug if needed
+        pyinstaller --add-data "../publish/Core;Core" --name ModManagerGUI --windowed main.py
 
     - name: Zip ModManagerGUI directory
       run: |
-        cd ModManagerGUI/dist
-        zip -r ModManagerGUI.zip ModManagerGUI
+        cd ModManagerGUI\dist
+        powershell -Command "Compress-Archive -Path ModManagerGUI -DestinationPath ModManagerGUI.zip"
 
     - name: Upload ModManagerGUI artifact
       uses: actions/upload-artifact@v3
       with:
         name: ModManagerGUI
-        path: ModManagerGUI/dist/ModManagerGUI.zip  # Path to the zip file
+        path: ModManagerGUI\dist\ModManagerGUI.zip  # Path to the zip file
