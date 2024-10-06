@@ -14,7 +14,7 @@ MacOS/darwin support is not planned but not explicitly impossible.
 - Deactivate, Activate mods
 - Import mods from previous game versions
 
-![screenshot](https://github.com/sam-k0/WoTModAssistantCore/tree/master/ModManagerCore/res/screen1.png)
+![screenshot](https://github.com/sam-k0/WoTModAssistantCore/tree/master/res/screen1.png)
 
 Planned features:
 - [x] Automatic build actions for Linux
