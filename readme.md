@@ -1,4 +1,6 @@
 # ModManagerCoreGUI
+[![Build for Linux](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_linux.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_linux.yml)
+
 
 The GUI application for interacting with ModManagerCore.
 
