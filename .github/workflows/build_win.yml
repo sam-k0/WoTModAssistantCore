@@ -43,8 +43,7 @@ jobs:
 
     - name: Build ModManagerGUI with PyInstaller
       run: |
-        cd ModManagerGUI  # Change to the ModManagerGUI directory
-        dir  # List contents to debug if needed
+        cd ModManagerGUI
         pyinstaller --add-data "../publish/Core;Core" --name ModManagerGUI --windowed main.py
 
     - name: Zip ModManagerGUI directory
@@ -61,14 +60,15 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
           });
-          // Remove the {?name,label} part from upload_url
-          const cleanedUploadUrl = latestRelease.data.upload_url.split("{")[0];
-          return cleanedUploadUrl;
+          // Clean the URL and append the name query parameter
+          const cleanedUploadUrl = latestRelease.data.upload_url.split('{')[0];
+          const finalUploadUrl = `${cleanedUploadUrl}?name=ModManagerGUI_win.zip`; // Append filename to the URL
+          core.setOutput('upload_url', finalUploadUrl);
 
     - name: Upload ModManagerGUI artifact to release
       uses: actions/upload-release-asset@v1
       with:
-        upload_url: ${{ steps.get_release.outputs.result }}
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
         asset_path: ModManagerGUI\dist\ModManagerGUI_win.zip
         asset_name: ModManagerGUI_win.zip
         asset_content_type: application/zip

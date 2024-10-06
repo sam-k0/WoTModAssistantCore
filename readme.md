@@ -37,7 +37,7 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 
 > [!TIP]
 > You can also execute the `build_linux.sh` script after setting up a venv with pyside6 and pyinstaller installed.
-> Also, builds can be found as [artifacts](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_linux.yml) in the `Actions` tab.
+> Also, builds can be found in the `Release` tab.
 
 1. Download or build the project.
 2. Run `ModManagerGUI`.
@@ -47,10 +47,9 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 
 ### Windows
 > [!IMPORTANT]
-> Please download the latest `artifacts` build from the `Actions->Build Windows` workflow run.
-> Release Tab does NOT get updated frequently.
+> Please download the latest `Windows release` build from the `Release` tab.
 
-1. Download and unzip the latest [artifact](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_win.yml) or release.
+1. Download and unzip the latest release.
 2. Run `ModManagerGUI.exe`.
 3. On first run, it will prompt you to select the game directory, you can find it by checking the `WargamingGameCenter`->`World Of Tanks`->`Modify Installation`->`open game directory`.
 4. Select the path to `WorldOfTanks.exe`.
