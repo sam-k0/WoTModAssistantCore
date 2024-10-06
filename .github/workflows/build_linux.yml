@@ -62,6 +62,7 @@ jobs:
         release_name: "Linux Release ${{ github.run_number }}"  # Optional, you can change the name
         draft: false  # Set to true if you want to create a draft release
         prerelease: false  # Set to true if it's a prerelease
+        body: "Release for Linux"
 
     - name: Upload ModManagerGUI artifact to release
       uses: actions/upload-release-asset@v1
