@@ -133,9 +133,13 @@ class ModManagerCore:
         # prepend installation path to args list
         args = [self.installation_path] + args
         # invoke the ModManagerCore with the args list
+        
+        print("Running command: ", args)
+
         popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
+        print("Core output: ", output)
         return output
     
     def set_game_installation_dir(self, path:str)->bool:

@@ -399,3 +399,6 @@ FodyWeavers.xsd
 .venv
 WorldOfTanks
 ModManagerGUI/Core/
+/ModManagerGUI/build
+/ModManagerGUI/dist
+*.spec

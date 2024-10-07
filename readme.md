@@ -40,7 +40,7 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 
 > [!TIP]
 > You can also execute the `build_linux.sh` script after setting up a venv with pyside6 and pyinstaller installed.
-> Also, builds can be found in the `Release` tab.
+> Also, builds can be found in the [release](https://github.com/sam-k0/WoTModAssistantCore/releases) tab.
 
 1. Download or build the project.
 2. Run `ModManagerGUI`.
@@ -50,7 +50,7 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 
 ### Windows
 > [!IMPORTANT]
-> Please download the latest `Windows release` build from the `Release` tab.
+> Please download the latest `Windows release` build from the [release](https://github.com/sam-k0/WoTModAssistantCore/releases) tab.
 
 1. Download and unzip the latest release.
 2. Run `ModManagerGUI.exe`.
