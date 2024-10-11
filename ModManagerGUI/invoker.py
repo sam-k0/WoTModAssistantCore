@@ -58,8 +58,12 @@ class ModManagerCore:
     
     # parse the output of the ModManagerCore json response
     def parse_response(self, output_json:str):
-        parent = json.loads(output_json)
-        return (parent["message"], parent["errorCode"], parent["actionCode"])
+        try:
+            parent = json.loads(output_json)
+        except json.JSONDecodeError as e:
+            return ("Output: "+output_json, -1, -1)
+        else:
+            return (parent["message"], parent["errorCode"], parent["actionCode"])
 
     def get_mods_list(self):
         arglist = ["--list", "all"]
