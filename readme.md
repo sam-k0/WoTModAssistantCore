@@ -4,7 +4,7 @@
 The GUI application for interacting with ModManagerCore.
 
 > [!IMPORTANT]
-> Currently there is an issue on Windows platforms. A fix is being worked on.
+> Windows is still unstable. Please report any encountered bugs.
 
 ### Compatibility
 - Windows (10+)
