@@ -1,6 +1,7 @@
 import sys 
 from PySide6 import QtCore, QtWidgets, QtGui
 import os
+import sys
 import invoker
 
 class MainWindow(QtWidgets.QWidget):
@@ -8,6 +9,11 @@ class MainWindow(QtWidgets.QWidget):
         super().__init__()
 
         self.myinvoker = invoker.ModManagerCore()
+        # check if the Core is in the expected location
+        if not os.path.exists(self.myinvoker.installation_path):
+            self.show_error("Could not find the ModManagerCore executable at "+self.myinvoker.installation_path, "Error: Core not found")
+            sys.exit(1)
+
 
         self.setWindowTitle("Mod Manager")
         # Create widgets
@@ -45,12 +51,15 @@ class MainWindow(QtWidgets.QWidget):
         self.btn_disableall = QtWidgets.QPushButton("Disable all mods")
         self.btn_enableall = QtWidgets.QPushButton("Enable all mods")
         # set button icons
-        self.btn_disableall.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
-        self.btn_enableall.setIcon(QtGui.QIcon.fromTheme("emblem-default"))
-        self.btn_refresh.setIcon(QtGui.QIcon.fromTheme("view-refresh"))
-        self.btn_toggle.setIcon(QtGui.QIcon.fromTheme("object-flip-horizontal"))
-        self.btn_install.setIcon(QtGui.QIcon.fromTheme("list-add"))
-        self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
+        if sys.platform == "linux": # Windows does not get icons yet
+            self.btn_disableall.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
+            self.btn_enableall.setIcon(QtGui.QIcon.fromTheme("emblem-default"))
+            self.btn_refresh.setIcon(QtGui.QIcon.fromTheme("view-refresh"))
+            self.btn_toggle.setIcon(QtGui.QIcon.fromTheme("object-flip-horizontal"))
+            self.btn_install.setIcon(QtGui.QIcon.fromTheme("list-add"))
+            self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
+        
+            
 
 
         # Set up layout
