@@ -137,10 +137,13 @@ class ModManagerCore:
         # prepend installation path to args list
         args = [self.installation_path] + args
         # invoke the ModManagerCore with the args list
-        
         print("Running command: ", args)
-
-        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        
+        popen = None
+        if sys.platform == "win32":#hide the console window on Windows
+            popen = subprocess.Popen(args, stdout=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+        elif sys.platform == "linux":
+            popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
         print("Core output: ", output)
