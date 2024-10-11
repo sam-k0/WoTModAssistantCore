@@ -61,7 +61,7 @@ class ModManagerCore:
         try:
             parent = json.loads(output_json)
         except json.JSONDecodeError as e:
-            return ("Output: "+output_json, -1, -1)
+            return (str(output_json), -1, -1)
         else:
             return (parent["message"], parent["errorCode"], parent["actionCode"])
 
