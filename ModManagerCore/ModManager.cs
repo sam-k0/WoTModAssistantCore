@@ -99,8 +99,16 @@ namespace ModAssistant
 
             foreach (string subdirectory in Directory.EnumerateDirectories(ConfigIO.GetModsFolderPath()))
             {
-                // check if the subdirectory is a valid game version folder or the config or temp folder, we only want to get the game version folders
-                if (subdirectory.Contains("config") || subdirectory.Contains("temp"))
+
+                // Check if the subdir is valid
+                // it is valid if the name contains a pure number when all . are removed
+                var pureNumber = subdirectory.Replace(".", "");
+                if (!pureNumber.All(char.IsDigit))
+                {
+                    continue;
+                }
+                // Check if the subdir contains the words "config" or "temp"
+                if (subdirectory.Contains("config") || subdirectory.Contains("temp")) 
                 {
                     continue;
                 }
@@ -335,6 +343,12 @@ namespace ModAssistant
             {
                 if (!mod.IsEnabled)
                 {
+                    // Check if the file is currently ending with .wotmod.disabled due to a weird bug on windows?
+                    if (!mod.LocalFileName.EndsWith(".wotmod.disabled"))
+                    {
+                        // The file is not disabled, so we skip it
+                        continue;
+                    }
                     // Remove the .disabled extension
                     string nameWithoutDisabled = mod.LocalFileName.Substring(0, mod.LocalFileName.Length - ".disabled".Length);
                     File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + nameWithoutDisabled);
@@ -350,6 +364,12 @@ namespace ModAssistant
             {
                 if (mod.IsEnabled)
                 {
+                    // Check if the file is currently ending with .wotmod
+                    if (!mod.LocalFileName.EndsWith(".wotmod"))
+                    {
+                        // The file is not enabled, so we skip it
+                        continue;
+                    }
                     // Disable the mod
                     File.Move(GetNewestGameVersionFolder() + "/" + mod.LocalFileName, GetNewestGameVersionFolder() + "/" + mod.LocalFileName + ".disabled");
                 }

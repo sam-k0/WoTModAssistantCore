@@ -1,11 +1,15 @@
 # ModManagerCoreGUI
 [![Build for Linux](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_linux.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_linux.yml) [![Build for Windows](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_win.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_win.yml)
 
-The GUI application for interacting with ModManagerCore.
+A simple cross-platform mod manager for World of Tanks.
 
 ### Compatibility
 - Windows (10+)
-- Linux (developed on Ubuntu 22 like)
+- Linux 
+
+> [!IMPORTANT]
+> As this tool is primarily developed on Linux, bugs and issues may arise on Windows.
+> Please report any issues to the issue tracker.
 
 MacOS/darwin support is not planned but not explicitly impossible.
 
@@ -27,6 +31,7 @@ Planned features:
 - [ ] wgmods.net compatible mod browser integration
 - [x] Easier setup of `ModManagerCore`, integrated to the GUI
 - [ ] Localization / language support
+- [ ] Styling and theming support
 
 ## Installing
 Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.
@@ -46,7 +51,7 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 
 
 ### Windows
-> [!IMPORTANT]
+> [!TIP]
 > Please download the latest `Windows release` build from the [release](https://github.com/sam-k0/WoTModAssistantCore/releases) tab.
 
 1. Download and unzip the latest release.
@@ -80,4 +85,6 @@ Please check the project's subdirectories readme files for more information on h
 If you want to report bugs, request features or contribute to the project, please open an issue or a pull request.
 Pull requests should be made to the `dev` branch. 
 Also, please make sure your code follows `cross-platform` standards and is tested on both Windows and Linux.
-Lazy or untested PRs and issues will be closed.
+
+### License
+Please see the `LICENSE` file for more information.
