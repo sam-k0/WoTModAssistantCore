@@ -3,9 +3,6 @@
 
 The GUI application for interacting with ModManagerCore.
 
-> [!IMPORTANT]
-> Windows is still unstable. Please report any encountered bugs.
-
 ### Compatibility
 - Windows (10+)
 - Linux (developed on Ubuntu 22 like)

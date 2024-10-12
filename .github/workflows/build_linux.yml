@@ -29,7 +29,7 @@ jobs:
     - name: Publish .NET project
       run: |
         cd ./ModManagerCore
-        dotnet publish --configuration Release --output ../publish/Core --self-contained -r linux-x64
+        dotnet publish --configuration Release --output ${{ github.workspace }}/publish/Core --self-contained -r linux-x64
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v4
@@ -45,11 +45,11 @@ jobs:
       run: |
         cd ModManagerGUI  # Change to the ModManagerGUI directory
         ls  # List contents to debug if needed
-        pyinstaller --add-data "../publish/Core:Core" --name ModManagerGUI --windowed main.py
+        pyinstaller --add-data "${{ github.workspace }}/publish/Core:Core" --name ModManagerGUI --windowed main.py
 
     - name: Zip ModManagerGUI directory
       run: |
-        cd ModManagerGUI/dist
+        cd ${{ github.workspace }}/ModManagerGUI/dist
         zip -r ModManagerGUI.zip ModManagerGUI
 
     - name: Create a new release
