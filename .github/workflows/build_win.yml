@@ -31,6 +31,15 @@ jobs:
         cd ModManagerCore
         dotnet publish --configuration Release --output ../publish/Core --self-contained -r win-x64
 
+    - name: List published files
+      run: |
+        dir ../publish/Core
+
+    - name: Copy .NET runtime to ModManagerGUI
+      run: |
+        mkdir ModManagerGUI\Core  # Ensure the target folder exists
+        xcopy /E /I /Y ../publish/Core ModManagerGUI\Core  # Copy all files from the publish output to the GUI project
+
     - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:

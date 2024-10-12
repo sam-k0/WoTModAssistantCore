@@ -29,7 +29,7 @@ jobs:
     - name: Publish .NET project
       run: |
         cd ./ModManagerCore
-        dotnet publish --configuration Release --output ../publish/Core
+        dotnet publish --configuration Release --output ../publish/Core --self-contained -r linux-x64
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v4
