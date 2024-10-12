@@ -49,6 +49,9 @@ class ModManagerCore:
             errcode = parent["errorCode"]
             actioncode = parent["actionCode"]
 
+            if errcode != 0:
+                return message_raw, errcode, actioncode
+
             message = json.loads(message_raw)
             # parse every element in message list to json and create a Mod object
             mods = []

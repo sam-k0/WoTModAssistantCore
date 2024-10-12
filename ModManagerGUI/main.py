@@ -129,6 +129,10 @@ class MainWindow(QtWidgets.QWidget):
     def reload_mods(self, updateLog:bool=False):
         try:
             mods, err, action = self.myinvoker.get_mods_list()
+            if err != 0:
+                self.update_action_log(mods, err, action)
+                return
+
             # reset model
             self.mod_model.clear()
             # populate model with mod items
