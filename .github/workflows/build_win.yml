@@ -48,7 +48,7 @@ jobs:
     - name: Build ModManagerGUI with PyInstaller
       run: |
         cd ModManagerGUI
-        pyinstaller --add-data "${{ github.workspace }}/ModManagerGUI/Core;Core" --name ModManagerGUI main.py
+        pyinstaller --add-data "${{ github.workspace }}/publish/Core;Core" --name ModManagerGUI main.py
 
     - name: Zip ModManagerGUI directory
       run: |

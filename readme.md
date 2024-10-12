@@ -73,8 +73,8 @@ Following is an unfinished guide on how to install `ModManagerCore` and `ModMana
 4. Run the `CoreGUI` from the main directory.
 
 ## Dependencies
-- PySide6
-- Newtonsoft.Json
+- PySide6, PyInstaller, Python 3.11x `(ModManagerCoreGUI)`
+- Newtonsoft.Json, .NET 8.0 `(ModManagerCore)`
 
 Please check the project's subdirectories readme files for more information on how to build.
 
