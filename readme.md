@@ -86,5 +86,6 @@ If you want to report bugs, request features or contribute to the project, pleas
 Pull requests should be made to the `dev` branch. 
 Also, please make sure your code follows `cross-platform` standards and is tested on both Windows and Linux.
 
-### License
-Please see the `LICENSE` file for more information.
+> [!IMPORTANT]
+> Please make sure to provide a detailed description of issues.
+> If you are submitting a pull request, please make sure to provide a detailed description of the changes.
