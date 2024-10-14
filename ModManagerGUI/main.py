@@ -3,6 +3,8 @@ from PySide6 import QtCore, QtWidgets, QtGui
 import os
 import sys
 import invoker
+import settings as settingstab
+import wgmodbrowser as wgb
 
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
@@ -14,44 +16,38 @@ class MainWindow(QtWidgets.QWidget):
             self.show_error("Could not find the ModManagerCore executable at "+self.myinvoker.installation_path, "Error: Core not found")
             sys.exit(1)
 
-
         self.setWindowTitle("WoT Mod Manager GUI")
-        # Create widgets
-        self.lbl_installed = QtWidgets.QLabel("Installed", alignment=QtCore.Qt.AlignCenter )
-        # make the text bold
+
+        # Tabs
+        self.tabs = QtWidgets.QTabWidget(self)
+        self.main_tab = QtWidgets.QWidget()
+        self.mainlayout = QtWidgets.QVBoxLayout(self.main_tab)
+
+        #region Main Tab widgets
+        self.lbl_installed = QtWidgets.QLabel("Installed", alignment=QtCore.Qt.AlignCenter)
         font = self.lbl_installed.font()
         font.setBold(True)
         self.lbl_installed.setFont(font)
-        # labels for settings
         self.lbl_settings_top = QtWidgets.QLabel("Settings", alignment=QtCore.Qt.AlignCenter)
         self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: "+self.myinvoker.installation_path, alignment=QtCore.Qt.AlignTop)
         self.lbl_moddir = QtWidgets.QLabel("Managing mods from: unknown", alignment=QtCore.Qt.AlignTop)
-        # make font smaller for the install directory label
         font.setPointSize(8)
         self.lbl_installdir.setFont(font)
         self.lbl_moddir.setFont(font)
-
         self.lbl_details = QtWidgets.QLabel("Details", alignment=QtCore.Qt.AlignCenter)
         self.lbl_description = QtWidgets.QLabel("Description", alignment=QtCore.Qt.AlignCenter, wordWrap=True)
-        # Action log will display the output of the last action / debug information
         self.lbl_action_log = QtWidgets.QLabel("Action log", alignment=QtCore.Qt.AlignCenter)
         self.lbl_action_log.setWordWrap(True)
-
-
-        # List view for mods
         self.mod_list_view = QtWidgets.QListView(self)
         self.mod_model = QtGui.QStandardItemModel(self.mod_list_view)
-
         self.mod_list_view.setModel(self.mod_model)
-
         self.btn_refresh = QtWidgets.QPushButton("Refresh mods")
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
         self.btn_install = QtWidgets.QPushButton("Install mod")
         self.btn_moveall = QtWidgets.QPushButton("Import mods from older game version")
         self.btn_disableall = QtWidgets.QPushButton("Disable all mods")
         self.btn_enableall = QtWidgets.QPushButton("Enable all mods")
-        # set button icons
-        if sys.platform == "linux": # Windows does not get icons yet
+        if sys.platform == "linux":
             self.btn_disableall.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
             self.btn_enableall.setIcon(QtGui.QIcon.fromTheme("emblem-default"))
             self.btn_refresh.setIcon(QtGui.QIcon.fromTheme("view-refresh"))
@@ -59,56 +55,73 @@ class MainWindow(QtWidgets.QWidget):
             self.btn_install.setIcon(QtGui.QIcon.fromTheme("list-add"))
             self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
 
-        # Set up layout
-        self.mainlayout = QtWidgets.QVBoxLayout(self)
+        # Set up main layout
         self.mainlayout.addWidget(self.lbl_settings_top)
         self.mainlayout.addWidget(self.lbl_installdir)
         self.mainlayout.addWidget(self.lbl_moddir)
-        # set a vertical spacing line between the labels and the list view
         self.mainlayout.addSpacing(10)
-
         self.mainlayout.addWidget(self.lbl_installed)
         self.mainlayout.addWidget(self.mod_list_view)
         self.mainlayout.addWidget(self.lbl_details)
         self.mainlayout.addWidget(self.lbl_description)
-        # horizontal spacer
         self.mainlayout.addStretch()
-
         self.mainlayout.addWidget(self.btn_refresh)
-        # 2 buttons in a horizontal layout
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_toggle)
         self.hlayout.addWidget(self.btn_install)
         self.mainlayout.addLayout(self.hlayout)
-        # 2 buttons in a horizontal layout
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_enableall)
         self.hlayout.addWidget(self.btn_disableall)
         self.mainlayout.addLayout(self.hlayout)
         self.mainlayout.addWidget(self.btn_moveall)
         self.mainlayout.addWidget(self.lbl_action_log)
+        #endregion
 
-        # Connect button click to magic function
+        
+        #region Settings Tab
+        self.settings_tab = QtWidgets.QWidget()
+        self.settings_layout = QtWidgets.QVBoxLayout(self.settings_tab)
+        self.settings_view = settingstab.SettingsTabView()
+        self.settings_layout.addWidget(self.settings_view)
+        #endregion
+
+        #region Mod Browser Tab
+        self.mod_browser_tab = QtWidgets.QWidget()
+        self.mod_browser_layout = QtWidgets.QVBoxLayout(self.mod_browser_tab)
+
+        search_results = wgb.wgmods.WGModsRequest().get_start_page("en", 5,5,5,185)
+        self.mod_browser_view = wgb.WGModsSearchResultsView(search_results)
+        self.mod_browser_layout.addWidget(self.mod_browser_view)
+        #endregion
+
+
+        # Add tabs to the tab widget
+        self.tabs.addTab(self.main_tab, "Main")
+        self.tabs.addTab(self.settings_tab, "Settings")
+        self.tabs.addTab(self.mod_browser_tab, "Mod Browser")
+
+        # Set the main layout of the window
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.addWidget(self.tabs)
+
+        # Connect signals
         self.btn_refresh.clicked.connect(self.reload_mods_gui)
         self.btn_install.clicked.connect(self.install_mod)
         self.btn_toggle.clicked.connect(self.toggle_mod)
         self.btn_disableall.clicked.connect(self.disable_all)
         self.btn_enableall.clicked.connect(self.enable_all)
         self.btn_moveall.clicked.connect(self.move_all_mods)
-        # Connect the list view selection signal to a function to display mod details
         self.mod_list_view.selectionModel().currentChanged.connect(self.display_mod_details)
-        # Connect right-click to show mod details
         self.mod_list_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.mod_list_view.customContextMenuRequested.connect(self.show_mod_details_window)
 
-        # Make sure the Core is configured correctly
+        # Setup check
         if not self.myinvoker.get_game_installation_dir():
             self.show_error("It appears you are running this for the first time. Please select the game directory.", "First time setup", QtWidgets.QMessageBox.Information)
             self.setup_game_directory()
 
-        # Update the game mod folder label
         self.lbl_moddir.setText("Managing mods from: "+self.myinvoker.get_newest_mod_folder())
-        # Populate the mod list
         self.reload_mods()
     
     def update_action_log(self, message:str, errcode:int=0,actioncode:int=-99):

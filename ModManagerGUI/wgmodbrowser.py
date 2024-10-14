@@ -88,31 +88,45 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
         self.layoutChanged.emit()
 
 
-class WGModsSearchResultsView(QtWidgets.QTableView):
+class WGModsSearchResultsView(QtWidgets.QWidget):
     def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None):
         super(WGModsSearchResultsView, self).__init__(parent)
+        
+        self.layout = QtWidgets.QVBoxLayout(self)
+        
+        # Create the search bar
+        self.search_bar = QtWidgets.QLineEdit(self)
+        self.search_bar.setPlaceholderText("Search mods...")
+        self.layout.addWidget(self.search_bar)
+        
+        # Create the table view
+        self.table_view = QtWidgets.QTableView(self)
+        self.layout.addWidget(self.table_view)
+        
+        # Create the model and proxy model
         self.model = WGModsSearchResultsModel(search_results)
-        self.setModel(self.model)
-        self.setSortingEnabled(True)
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.setShowGrid(True)
-        self.setAlternatingRowColors(True)
-        self.setSortingEnabled(True)
-        self.sortByColumn(0, QtCore.Qt.AscendingOrder)
-        self.resizeColumnsToContents()
-        self.resizeRowsToContents()
-        self.setWordWrap(True)
-
+        self.proxy_model = QtCore.QSortFilterProxyModel(self)
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.proxy_model.setFilterKeyColumn(-1)  # Filter all columns
+        
+        self.table_view.setModel(self.proxy_model)
+        self.table_view.setSortingEnabled(True)
+        self.table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.table_view.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.table_view.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.table_view.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.table_view.setShowGrid(True)
+        self.table_view.setAlternatingRowColors(True)
+        self.table_view.setSortingEnabled(True)
+        self.table_view.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.table_view.resizeColumnsToContents()
+        self.table_view.resizeRowsToContents()
+        self.table_view.setWordWrap(True)
+        
+        # Connect the search bar to the filter method
+        self.search_bar.textChanged.connect(self.filter_mods)
     
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    search_results = wgmods.WGModsRequest().get_start_page("en", 10, 10, 10, 185)
-    view = WGModsSearchResultsView(search_results)
-    view.show()
-    sys.exit(app.exec_())
+    def filter_mods(self, text):
+        self.proxy_model.setFilterFixedString(text)
