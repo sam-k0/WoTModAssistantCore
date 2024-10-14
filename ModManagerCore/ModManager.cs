@@ -99,16 +99,26 @@ namespace ModAssistant
 
             foreach (string subdirectory in Directory.EnumerateDirectories(ConfigIO.GetModsFolderPath()))
             {
-
-                // Check if the subdir is valid
-                // it is valid if the name contains a pure number when all . are removed
-                var pureNumber = subdirectory.Replace(".", "");
-                if (!pureNumber.All(char.IsDigit))
+                // Check if the subdir contains the words "config" or "temp"
+                if (subdirectory.Contains("config") || subdirectory.Contains("temp")) 
                 {
                     continue;
                 }
-                // Check if the subdir contains the words "config" or "temp"
-                if (subdirectory.Contains("config") || subdirectory.Contains("temp")) 
+
+                // Check if the subdir contains only numbers and dots
+                // Get only the last part of the path without using split as these change from OS
+                string last = Path.GetFileName(subdirectory);
+
+                bool isNumeric = true;
+                foreach (char c in last)
+                {
+                    if (!char.IsDigit(c) && c != '.')
+                    {
+                        isNumeric = false;
+                        break;
+                    }
+                }
+                if (!isNumeric)
                 {
                     continue;
                 }

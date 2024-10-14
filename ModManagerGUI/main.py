@@ -15,7 +15,7 @@ class MainWindow(QtWidgets.QWidget):
             sys.exit(1)
 
 
-        self.setWindowTitle("Mod Manager")
+        self.setWindowTitle("WoT Mod Manager GUI")
         # Create widgets
         self.lbl_installed = QtWidgets.QLabel("Installed", alignment=QtCore.Qt.AlignCenter )
         # make the text bold
@@ -58,9 +58,6 @@ class MainWindow(QtWidgets.QWidget):
             self.btn_toggle.setIcon(QtGui.QIcon.fromTheme("object-flip-horizontal"))
             self.btn_install.setIcon(QtGui.QIcon.fromTheme("list-add"))
             self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
-        
-            
-
 
         # Set up layout
         self.mainlayout = QtWidgets.QVBoxLayout(self)
@@ -358,7 +355,13 @@ class ModInfoWindow(QtWidgets.QDialog):
     
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication([])
+    argadd = []
+    if sys.platform == "linux":
+        pass
+    elif sys.platform == "win32":
+        argadd = ['-platform', 'windows:darkmode=2']
+
+    app = QtWidgets.QApplication(sys.argv + argadd)
 
     widget = MainWindow()
     widget.resize(400, 500)
