@@ -82,7 +82,7 @@ class MainWindow(QtWidgets.QWidget):
         #region Settings Tab
         self.settings_tab = QtWidgets.QWidget()
         self.settings_layout = QtWidgets.QVBoxLayout(self.settings_tab)
-        self.settings_view = settingstab.SettingsTabView()
+        self.settings_view = settingstab.SettingsTabView(self.myinvoker)
         self.settings_layout.addWidget(self.settings_view)
         #endregion
 
