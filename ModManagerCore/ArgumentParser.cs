@@ -50,7 +50,10 @@ public class ArgumentParser
         Output,
 
         [Description("--mod-folder [newest,all]: Get the paths to the mod folders, allowed values: newest, all")]
-        ModFolders
+        ModFolders,
+
+        [Description("--move-all-new-version [folder]: Move all mods from the folder to the newest game version.")]
+        MoveAllNewVersion
     }
 
     public struct Argument{
@@ -84,7 +87,8 @@ public class ArgumentParser
         {"--move-to-new", ".*"}, // move mod to new location
         {"--set-all", "enabled|disabled"}, // set all mods to active / inactive
         {"-o", "json|default"}, // output format for console
-        {"--mod-folder", "newest|all"} // get the paths to the mod folders
+        {"--mod-folder", "newest|all"}, // get the paths to the mod folders
+        {"--move-all-new-version", ".*"} // move all mods from the folder to the newest game version
     };
 
 
@@ -134,6 +138,7 @@ public class ArgumentParser
                 "--set-all" => ArgumentType.SetAll,
                 "-o" => ArgumentType.Output,
                 "--mod-folder" => ArgumentType.ModFolders,
+                "--move-all-new-version" => ArgumentType.MoveAllNewVersion,
                 
                 _ => throw new ArgumentException($"Invalid argument (err2): {args[i]}")
             };
@@ -187,6 +192,9 @@ public class ArgumentParser
                 help += EnumHelper.GetEnumDescription(ArgumentType.SetAll);
                 break;
 
+            case "move-all-new-version":
+                help += EnumHelper.GetEnumDescription(ArgumentType.MoveAllNewVersion);
+                break;
 
             default:
                 return("Invalid value for help argument");

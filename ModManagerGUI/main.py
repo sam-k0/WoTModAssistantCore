@@ -259,7 +259,7 @@ class MainWindow(QtWidgets.QWidget):
                 # get all detected mod folders
                 mod_folders = self.myinvoker.get_all_mod_folders()
 
-                self.show_error(f"Could not move mods as you only have one mod folder.\nDetected mod folders ({len(mod_folders)}):\n"+str(mod_folders), "Error: Could not move mods")
+                self.show_error(f"An error occured.\nDetected mod folders ({len(mod_folders)}):\n"+str(mod_folders), "Error: Could not move mods")
 
         self.reload_mods()
 

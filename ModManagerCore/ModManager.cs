@@ -128,6 +128,49 @@ namespace ModAssistant
             return items;
         }
 
+
+        public string GetVersionNumber(string folder)
+        {
+            string[] parts = folder.Split("/");
+            return parts[parts.Length - 1];
+        }
+
+        public Output CompareInstalledVersions(ModInfo movedmod, string gameVerFolder, ref bool exists)
+        {
+            foreach (string installedmod in Directory.EnumerateFiles(gameVerFolder, "*.wotmod"))
+            {
+                ModInfo oldmod = GetModInfo(installedmod);
+                if (oldmod.PackageID == movedmod.PackageID)
+                {
+                    try
+                    {
+                        if (int.Parse(oldmod.Version.Replace(".", "")) > int.Parse(movedmod.Version.Replace(".", "")))
+                        {
+                            if(!JsonOutput)
+                            {
+                                System.Console.WriteLine("Mod " + movedmod.PackageID + " already has a newer version in the newest game version folder");
+                            }
+                            exists = true;
+                            break;
+                        }
+                        else
+                        {
+                            if(!JsonOutput)
+                            {
+                                System.Console.WriteLine("Mod " + movedmod.PackageID + " has an older or equal version in the newest game version folder");
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        return LogOutput("Error comparing version numbers for mod" + movedmod.PackageID+ "\n"+e.Message, ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
+                    }
+                }
+            }
+            return new Output("", ErrorCode.Success, ActionCode.MoveToNew);
+            
+        }
+
         // Will always be json output
         public Output GetModFolders(string keyword)
         {
@@ -412,6 +455,91 @@ namespace ModAssistant
             return new Output(JsonConvert.SerializeObject(outputs), ErrorCode.Success, ActionCode.List);
         }
 
+
+        public Output MoveAllToNewestFromGameVersion(string gameVersionFolder)
+        {
+            List<string> items = GetGameVersionFoldersSorted();
+            if (items.Count < 2)
+            {
+                return LogOutput("Not enough game version folders to move mods", ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
+            }
+
+            string newest = items[items.Count - 1]; // The newest game version folder
+            // Check if the gameVersionFolder is valid
+            if (!items.Contains(gameVersionFolder))
+            {
+                return LogOutput("Invalid game version folder", ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
+            }
+            // Check if the gameVersionFolder is the newest one
+            if (gameVersionFolder == newest)
+            {
+                return LogOutput("The game version folder is already the newest one", ErrorCode.Success, ActionCode.MoveToNew);
+            }
+
+            // Move all mods from the gameVersionFolder to the newest game version folder
+            int moved = 0;
+            foreach (string file in Directory.EnumerateFiles(gameVersionFolder, "*.wotmod"))
+            {
+                // Get mod info
+                ModInfo movedmod = GetModInfo(file);
+                // Check if the mod exists as a newer version in the newest game version folder
+                bool exists = false;
+                foreach (string installedmod in Directory.EnumerateFiles(newest, "*.wotmod"))
+                {
+                    ModInfo oldmod = GetModInfo(installedmod);
+                    if (oldmod.PackageID == movedmod.PackageID)
+                    {
+                        try
+                        {
+                            if (int.Parse(oldmod.Version.Replace(".", "")) > int.Parse(movedmod.Version.Replace(".", "")))
+                            {
+                                if(!JsonOutput)
+                                {
+                                    System.Console.WriteLine("Mod " + movedmod.PackageID + " already has a newer version in the newest game version folder");
+                                }
+                                exists = true;
+                                break;
+                            }
+                            else
+                            {
+                                if(!JsonOutput)
+                                {
+                                    System.Console.WriteLine("Mod " + movedmod.PackageID + " has an older or equal version in the newest game version folder");
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            return LogOutput("Error comparing version numbers for mod" + movedmod.PackageID+ "\n"+e.Message, ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
+                        }
+                    }
+                }
+                if (exists) // we do not want to install an older version, so we skip it
+                {
+                    continue;
+                }
+
+
+                moved += 1;
+                try
+                {
+                    File.Move(file, newest + "/" + Path.GetFileName(file));
+                }
+                catch (Exception e)
+                {
+                    moved -= 1; // Decrement the counter on error
+                    if(!JsonOutput)
+                    {
+                        System.Console.WriteLine("Error moving file: " + e.Message);
+                    }   
+                }
+            }
+            if (moved == 0)
+            {
+                return LogOutput("No mods found in " + GetVersionNumber(gameVersionFolder), ErrorCode.Success, ActionCode.MoveToNew);
+            }
+            return LogOutput("Moved " + moved + " mods from " + GetVersionNumber(gameVersionFolder) + " to " + GetVersionNumber(newest), ErrorCode.Success, ActionCode.MoveToNew);
+        }
         public Output MoveToNewestGameVersion(string pkID)
         {
             List<string> items = GetGameVersionFoldersSorted();
@@ -425,20 +553,24 @@ namespace ModAssistant
             if (pkID == "all")
             {
                 // Move all mods from the second newest game version folder to the newest game version folder
-                
+                int moved = 0;
                 foreach (string file in Directory.EnumerateFiles(secondNewest, "*.wotmod"))
-                {
+                {   
+                    moved += 1;
                     try
                     {
                         File.Move(file, newest + "/" + Path.GetFileName(file));
                     }
                     catch (Exception e)
                     {
-                        System.Console.WriteLine("Error moving file: " + e.Message);
+                        moved -= 1; // Decrement the counter on error
+                        if(!JsonOutput)
+                        {
+                            System.Console.WriteLine("Error moving file: " + e.Message);
+                        }   
                     }
                 }
-                var num = Directory.EnumerateFiles(secondNewest, "*.wotmod").ToList().Count();
-                return LogOutput("Moved " + num + " mods from " + secondNewest + " to " + newest, ErrorCode.Success, ActionCode.MoveToNew);
+                return LogOutput("Moved " + moved + " mods from " + GetVersionNumber(secondNewest) + " to " + GetVersionNumber(newest), ErrorCode.Success, ActionCode.MoveToNew);
             }
             List<ModInfo> installedMods = GetInstalledMods(secondNewest);
             foreach (ModInfo mod in installedMods)

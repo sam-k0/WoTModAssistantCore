@@ -1,5 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using ModAssistant;
 // Get compilation date
@@ -127,6 +126,15 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
         case ArgumentParser.ArgumentType.ModFolders:
             output= modManager.GetModFolders(arg.value);
             if(modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
+            }
+            break;
+
+
+        case ArgumentParser.ArgumentType.MoveAllNewVersion:
+            output = modManager.MoveAllToNewestFromGameVersion(arg.value);
+            if (modManager.JsonOutput)
             {
                 Console.WriteLine(output.GetFullJson());
             }
