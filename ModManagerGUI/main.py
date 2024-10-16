@@ -16,6 +16,13 @@ class MainWindow(QtWidgets.QWidget):
             self.show_error("Could not find the ModManagerCore executable at "+self.myinvoker.installation_path, "Error: Core not found")
             sys.exit(1)
 
+                # Setup check
+        if not self.myinvoker.get_game_installation_dir():
+            self.show_error("It appears you are running this for the first time. Please select the game directory.", "First time setup", QtWidgets.QMessageBox.Information)
+            self.setup_game_directory()
+        else:
+            print("Game directory already set to: ", self.myinvoker.get_game_installation_dir())
+
         self.setWindowTitle("WoT Mod Manager GUI")
 
         # Tabs
@@ -25,15 +32,8 @@ class MainWindow(QtWidgets.QWidget):
 
         #region Main Tab widgets
         self.lbl_installed = QtWidgets.QLabel("Installed", alignment=QtCore.Qt.AlignCenter)
-        font = self.lbl_installed.font()
-        font.setBold(True)
-        self.lbl_installed.setFont(font)
-        self.lbl_settings_top = QtWidgets.QLabel("Settings", alignment=QtCore.Qt.AlignCenter)
-        self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: "+self.myinvoker.installation_path, alignment=QtCore.Qt.AlignTop)
-        self.lbl_moddir = QtWidgets.QLabel("Managing mods from: unknown", alignment=QtCore.Qt.AlignTop)
-        font.setPointSize(8)
-        self.lbl_installdir.setFont(font)
-        self.lbl_moddir.setFont(font)
+        self.lbl_installed.setFont(QtGui.QFont("Arial", 20, QtGui.QFont.Bold))
+
         self.lbl_details = QtWidgets.QLabel("Details", alignment=QtCore.Qt.AlignCenter)
         self.lbl_description = QtWidgets.QLabel("Description", alignment=QtCore.Qt.AlignCenter, wordWrap=True)
         self.lbl_action_log = QtWidgets.QLabel("Action log", alignment=QtCore.Qt.AlignCenter)
@@ -56,9 +56,6 @@ class MainWindow(QtWidgets.QWidget):
             self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
 
         # Set up main layout
-        self.mainlayout.addWidget(self.lbl_settings_top)
-        self.mainlayout.addWidget(self.lbl_installdir)
-        self.mainlayout.addWidget(self.lbl_moddir)
         self.mainlayout.addSpacing(10)
         self.mainlayout.addWidget(self.lbl_installed)
         self.mainlayout.addWidget(self.mod_list_view)
@@ -116,12 +113,6 @@ class MainWindow(QtWidgets.QWidget):
         self.mod_list_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.mod_list_view.customContextMenuRequested.connect(self.show_mod_details_window)
 
-        # Setup check
-        if not self.myinvoker.get_game_installation_dir():
-            self.show_error("It appears you are running this for the first time. Please select the game directory.", "First time setup", QtWidgets.QMessageBox.Information)
-            self.setup_game_directory()
-
-        self.lbl_moddir.setText("Managing mods from: "+self.myinvoker.get_newest_mod_folder())
         self.reload_mods()
     
     def update_action_log(self, message:str, errcode:int=0,actioncode:int=-99):
@@ -240,26 +231,11 @@ class MainWindow(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def move_all_mods(self):
-        # show confirmation dialog
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Question)
-        msg.setText("This will import all mods from your previous game version to the current one.\nAre you sure you want to do this?")
-        msg.setWindowTitle("Move all mods")
-        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        msg.setDefaultButton(QtWidgets.QMessageBox.No)
-        ret = msg.exec()
+        # use the new ImportPrevModsWindow
+        imp = ImportPrevModsWindow(self)
+        imp.exec()
 
-        if ret == QtWidgets.QMessageBox.Yes:
-            response_output = self.myinvoker.move_mods("all")
-            # handle response jsonself.lbl_moddir.setText("Managing mods from: "+self.myinvoker.get_mod_folders("newest"))
-            response, err, act = self.myinvoker.parse_response(response_output)
-            self.update_action_log(response, err, act)
-            # Show error if there was an error
-            if err != 0:
-                # get all detected mod folders
-                mod_folders = self.myinvoker.get_all_mod_folders()
 
-                self.show_error(f"An error occured.\nDetected mod folders ({len(mod_folders)}):\n"+str(mod_folders), "Error: Could not move mods")
 
         self.reload_mods()
 
@@ -296,9 +272,10 @@ class ModInfoWindow(QtWidgets.QDialog):
         self.myinvoker:invoker.ModManagerCore = parent_window.myinvoker
         self.parent_window:MainWindow = parent_window
 
-        self.setWindowTitle("Mod Info")
+        self.setWindowTitle("Mod Info - "+mod.name)
         self.mainlayout = QtWidgets.QVBoxLayout(self)
         self.lbl_name = QtWidgets.QLabel(mod.name)
+        self.lbl_name.setFont(QtGui.QFont("Arial", 14, QtGui.QFont.Bold))
         self.lbl_version = QtWidgets.QLabel("Version: "+mod.version)
         self.lbl_pckid = QtWidgets.QLabel("Package ID: "+mod.pckid)
         self.lbl_wgid = QtWidgets.QLabel("wgmods ID: "+mod.wgid)
@@ -320,6 +297,9 @@ class ModInfoWindow(QtWidgets.QDialog):
         self.mainlayout.addLayout(self.hlayout)
         self.setLayout(self.mainlayout)
         self.mainlayout.addWidget(self.btn_wgmods)
+
+        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.setFixedSize(self.sizeHint())  # Makes the window non-resizable and just large enough to fit content
 
         # connect magic
         self.btn_uninstall.clicked.connect(self.uninstall_mod)
@@ -365,7 +345,74 @@ class ModInfoWindow(QtWidgets.QDialog):
             msg.setWindowTitle("Mod not available")
             msg.exec()
 
-    
+class ImportPrevModsWindow(QtWidgets.QDialog):
+    def __init__(self, parent_window: MainWindow):
+        super().__init__()
+
+        self.myinvoker: invoker.ModManagerCore = parent_window.myinvoker
+        self.parent_window = parent_window
+
+        self.setWindowTitle("Import mods from previous version")
+        
+        # Main layout
+        self.mainlayout = QtWidgets.QVBoxLayout(self)
+        self.mainlayout.setContentsMargins(10, 10, 10, 10)  # Adjust margins (left, top, right, bottom)
+        self.mainlayout.setSpacing(5)  # Adjust spacing between widgets
+
+        self.lbl_title = QtWidgets.QLabel("Import mods from a previous version")
+        self.cbb_mod_folders = QtWidgets.QComboBox()
+        self.btn_import = QtWidgets.QPushButton("Import")
+        self.btn_cancel = QtWidgets.QPushButton("Cancel")
+
+        # Set QLabel to avoid expanding unnecessarily
+        self.lbl_title.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
+        # Add widgets to layout
+        self.mainlayout.addWidget(self.lbl_title)
+        self.mainlayout.addWidget(self.cbb_mod_folders)
+        
+        # Button layout
+        self.hlayout = QtWidgets.QHBoxLayout()
+        self.hlayout.setSpacing(5)  # Reduce spacing between buttons
+        self.hlayout.addWidget(self.btn_import)
+        self.hlayout.addWidget(self.btn_cancel)
+        self.mainlayout.addLayout(self.hlayout)
+        
+        # Set layout to the dialog
+        self.setLayout(self.mainlayout)
+
+        # Adjust the window size to fit contents tightly
+        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.setFixedSize(self.sizeIncrement())  
+        
+        self.update_mod_folders()
+
+        # Connect signals
+        self.btn_import.clicked.connect(self.import_mods)
+        self.btn_cancel.clicked.connect(self.close)
+
+    def update_mod_folders(self):
+        folders = self.myinvoker.get_all_mod_folders()
+        self.cbb_mod_folders.clear()
+        for folder in folders:
+            self.cbb_mod_folders.addItem(folder)
+
+        # set the current index to the newest version
+        self.cbb_mod_folders.setCurrentIndex(len(folders)-1)
+
+    @QtCore.Slot()
+    def import_mods(self):
+        folder = self.cbb_mod_folders.currentText()
+        response = self.myinvoker.move_all_to_newest_from_game_version(folder)
+        msg, err, act = self.myinvoker.parse_response(response)
+        if err != 0:
+            self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")
+        self.parent_window.update_action_log(msg, err, act)
+        self.close()
+
+
+
+
 
 if __name__ == '__main__':
     argadd = []

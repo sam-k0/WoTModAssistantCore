@@ -536,7 +536,7 @@ namespace ModAssistant
             }
             if (moved == 0)
             {
-                return LogOutput("No mods found in " + GetVersionNumber(gameVersionFolder), ErrorCode.Success, ActionCode.MoveToNew);
+                return LogOutput("All mods are already imported from " + GetVersionNumber(gameVersionFolder), ErrorCode.Success, ActionCode.MoveToNew);
             }
             return LogOutput("Moved " + moved + " mods from " + GetVersionNumber(gameVersionFolder) + " to " + GetVersionNumber(newest), ErrorCode.Success, ActionCode.MoveToNew);
         }

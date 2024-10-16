@@ -125,7 +125,6 @@ class ModManagerCore:
         out = self.invoke(arglist)
         return out
     
-    #TODO: call this from the GUI
     def set_all_mods(self, enable:bool):
         arg = "enabled" if enable else "disabled"
         arglist = ["--set-all", arg]
@@ -173,6 +172,16 @@ class ModManagerCore:
             with open(os.path.join(os.path.dirname(self.installation_path), "config.json"), "r") as f:
                 return json.loads(f.read())["GameInstallDir"]
     
+    # move all mods to the newest version folder
+    def move_all_to_newest_from_game_version(self, version_folder:str):
+        arglist = ["--move-all-new-version", version_folder]
+        out = self.invoke(arglist)
+        return out
+    
+    def get_about(self):
+        arglist = ["--about", "any"]
+        out = self.invoke(arglist)
+        return out
 
 if __name__ == '__main__':
     print("This is the ModManagerCore invoker class")

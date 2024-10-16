@@ -41,11 +41,10 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
 
             break;
         case ArgumentParser.ArgumentType.About:
-            Console.WriteLine("------ About ------");
-            Console.WriteLine("WoTModAssistant Core ver. "+buildDate.ToString("yyyy.MM.dd"));
-            Console.WriteLine("This tool is used to manage mods for World of Tanks\nThe tool is used to install, uninstall, enable, disable and move mods to the newest game version");
-            Console.WriteLine("-> Game install directory set to "+modManager.ModManagerConfig.GameInstallDir);
+            string about = "Mod Manager Core - " + buildDate.ToString("yyyy.MM.dd");
 
+            Output aboutOutput = new Output(about, ErrorCode.Success, ActionCode.Setup);
+            Console.WriteLine(modManager.JsonOutput ? aboutOutput.GetFullJson() : aboutOutput.message);
             break;
 
         case ArgumentParser.ArgumentType.Toggle:
