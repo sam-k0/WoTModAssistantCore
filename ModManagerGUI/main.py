@@ -41,12 +41,15 @@ class MainWindow(QtWidgets.QWidget):
         self.mod_list_view = QtWidgets.QListView(self)
         self.mod_model = QtGui.QStandardItemModel(self.mod_list_view)
         self.mod_list_view.setModel(self.mod_model)
+
+        # Buttons
         self.btn_refresh = QtWidgets.QPushButton("Refresh mods")
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
         self.btn_install = QtWidgets.QPushButton("Install mod")
         self.btn_moveall = QtWidgets.QPushButton("Import mods from older game version")
         self.btn_disableall = QtWidgets.QPushButton("Disable all mods")
         self.btn_enableall = QtWidgets.QPushButton("Enable all mods")
+        self.btn_moveall_to_prev = QtWidgets.QPushButton("Move all mods to a previous version")
         if sys.platform == "linux":
             self.btn_disableall.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
             self.btn_enableall.setIcon(QtGui.QIcon.fromTheme("emblem-default"))
@@ -54,6 +57,7 @@ class MainWindow(QtWidgets.QWidget):
             self.btn_toggle.setIcon(QtGui.QIcon.fromTheme("object-flip-horizontal"))
             self.btn_install.setIcon(QtGui.QIcon.fromTheme("list-add"))
             self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
+            self.btn_moveall_to_prev.setIcon(QtGui.QIcon.fromTheme("go-previous"))
 
         # Set up main layout
         self.mainlayout.addSpacing(10)
@@ -72,6 +76,7 @@ class MainWindow(QtWidgets.QWidget):
         self.hlayout.addWidget(self.btn_disableall)
         self.mainlayout.addLayout(self.hlayout)
         self.mainlayout.addWidget(self.btn_moveall)
+        self.mainlayout.addWidget(self.btn_moveall_to_prev)
         self.mainlayout.addWidget(self.lbl_action_log)
         #endregion
 
@@ -80,15 +85,13 @@ class MainWindow(QtWidgets.QWidget):
         self.settings_tab = QtWidgets.QWidget()
         self.settings_layout = QtWidgets.QVBoxLayout(self.settings_tab)
         self.settings_view = settingstab.SettingsTabView(self.myinvoker)
-        self.settings_layout.addWidget(self.settings_view)
+        self.settings_layout.addWidget(self.settings_view, alignment=QtCore.Qt.AlignCenter)
         #endregion
 
         #region Mod Browser Tab
         self.mod_browser_tab = QtWidgets.QWidget()
         self.mod_browser_layout = QtWidgets.QVBoxLayout(self.mod_browser_tab)
-
-        search_results = wgb.wgmods.WGModsRequest().get_start_page("en", 5,5,5,185)
-        self.mod_browser_view = wgb.WGModsSearchResultsView(search_results)
+        self.mod_browser_view = wgb.WGModsSearchResultsView()
         self.mod_browser_layout.addWidget(self.mod_browser_view)
         #endregion
 
@@ -112,6 +115,7 @@ class MainWindow(QtWidgets.QWidget):
         self.mod_list_view.selectionModel().currentChanged.connect(self.display_mod_details)
         self.mod_list_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.mod_list_view.customContextMenuRequested.connect(self.show_mod_details_window)
+        self.btn_moveall_to_prev.clicked.connect(self.move_all_mods_to_prev)
 
         self.reload_mods()
     
@@ -234,10 +238,15 @@ class MainWindow(QtWidgets.QWidget):
         # use the new ImportPrevModsWindow
         imp = ImportPrevModsWindow(self)
         imp.exec()
-
-
-
         self.reload_mods()
+
+    @QtCore.Slot()
+    def move_all_mods_to_prev(self):
+        # use the new ExportPrevModsWindow
+        exp = ExportPrevModsWindow(self)
+        exp.exec()
+        self.reload_mods()
+        
 
     def setup_game_directory(self):
         # open file dialog
@@ -404,6 +413,72 @@ class ImportPrevModsWindow(QtWidgets.QDialog):
     def import_mods(self):
         folder = self.cbb_mod_folders.currentText()
         response = self.myinvoker.move_all_to_newest_from_game_version(folder)
+        msg, err, act = self.myinvoker.parse_response(response)
+        if err != 0:
+            self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")
+        self.parent_window.update_action_log(msg, err, act)
+        self.close()
+
+# Window popup to export mods to a previous version
+class ExportPrevModsWindow(QtWidgets.QDialog):
+    def __init__(self, parent_window: MainWindow):
+        super().__init__()
+
+        self.myinvoker: invoker.ModManagerCore = parent_window.myinvoker
+        self.parent_window = parent_window
+
+        self.setWindowTitle("Export mods to a previous version")
+        
+        # Main layout
+        self.mainlayout = QtWidgets.QVBoxLayout(self)
+        self.mainlayout.setContentsMargins(10, 10, 10, 10)  # Adjust margins (left, top, right, bottom)
+        self.mainlayout.setSpacing(5)  # Adjust spacing between widgets
+
+        self.lbl_title = QtWidgets.QLabel("Export mods to a previous version")
+        self.cbb_mod_folders = QtWidgets.QComboBox()
+        self.btn_export = QtWidgets.QPushButton("Export")
+        self.btn_cancel = QtWidgets.QPushButton("Cancel")
+
+        # Set QLabel to avoid expanding unnecessarily
+        self.lbl_title.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
+        # Add widgets to layout
+        self.mainlayout.addWidget(self.lbl_title)
+        self.mainlayout.addWidget(self.cbb_mod_folders)
+        
+        # Button layout
+        self.hlayout = QtWidgets.QHBoxLayout()
+        self.hlayout.setSpacing(5)  # Reduce spacing between buttons
+        self.hlayout.addWidget(self.btn_export)
+        self.hlayout.addWidget(self.btn_cancel)
+        self.mainlayout.addLayout(self.hlayout)
+        
+        # Set layout to the dialog
+        self.setLayout(self.mainlayout)
+
+        # Adjust the window size to fit contents tightly
+        self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.setFixedSize(self.sizeIncrement())  
+        
+        self.update_mod_folders()
+
+        # Connect signals
+        self.btn_export.clicked.connect(self.export_mods)
+        self.btn_cancel.clicked.connect(self.close)
+
+    def update_mod_folders(self):
+        folders = self.myinvoker.get_all_mod_folders()
+        self.cbb_mod_folders.clear()
+        for folder in folders:
+            self.cbb_mod_folders.addItem(folder)
+
+        # set the current index to the newest version
+        self.cbb_mod_folders.setCurrentIndex(len(folders)-1)
+
+    @QtCore.Slot()
+    def export_mods(self):
+        folder = self.cbb_mod_folders.currentText()
+        response = self.myinvoker.move_all_to_previous_version(folder)
         msg, err, act = self.myinvoker.parse_response(response)
         if err != 0:
             self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")

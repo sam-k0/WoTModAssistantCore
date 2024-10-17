@@ -1,6 +1,6 @@
 import wgmodrequests as wgmods
 from PySide6 import QtCore, QtWidgets, QtGui
-
+import webbrowser
 
 class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
     def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None):
@@ -9,7 +9,7 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
         self.new_mods_list = self.search_results.new_mods_list
         self.recommended_mods_list = self.search_results.recommended_mods_list
         self.updated_mods_list = self.search_results.updated_mods_list
-        self.header_labels = ["Mod Name", "Author", "Game Version", "Download URL"]
+        self.header_labels = ["Mod Name", "Author", "Game Version", "Download URL", "Mod ID"]
     
     def rowCount(self, parent):
         return len(self.search_results.get_new_mods()) + len(self.search_results.get_recommended_mods()) + len(self.search_results.get_updated_mods())
@@ -52,6 +52,14 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
                     return self.recommended_mods_list[index.row() - len(self.new_mods_list)].download_url
                 else:
                     return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].download_url
+                
+            elif index.column() == 4:
+                if index.row() < len(self.new_mods_list):
+                    return self.new_mods_list[index.row()].mod_id
+                elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
+                    return self.recommended_mods_list[index.row() - len(self.new_mods_list)].mod_id
+                else:
+                    return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].mod_id
         return None
     
     def headerData(self, section, orientation, role):
@@ -81,6 +89,11 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
             self.new_mods_list.sort(key=lambda x: x.download_url)
             self.recommended_mods_list.sort(key=lambda x: x.download_url)
             self.updated_mods_list.sort(key=lambda x: x.download_url)
+        elif column == 4:
+            self.new_mods_list.sort(key=lambda x: x.mod_id)
+            self.recommended_mods_list.sort(key=lambda x: x.mod_id)
+            self.updated_mods_list.sort(key=lambda x: x.mod_id)
+        
         if order == QtCore.Qt.DescendingOrder:
             self.new_mods_list.reverse()
             self.recommended_mods_list.reverse()
@@ -89,19 +102,21 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
 
 
 class WGModsSearchResultsView(QtWidgets.QWidget):
-    def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None):
+    def __init__(self, parent=None):
         super(WGModsSearchResultsView, self).__init__(parent)
         
-        self.layout = QtWidgets.QVBoxLayout(self)
+        search_results = wgmods.WGModsRequest().get_start_page("en", 20,5,1,185)
+
+        self.mainlayout = QtWidgets.QVBoxLayout(self)
         
         # Create the search bar
         self.search_bar = QtWidgets.QLineEdit(self)
         self.search_bar.setPlaceholderText("Search mods...")
-        self.layout.addWidget(self.search_bar)
+        self.mainlayout.addWidget(self.search_bar)
         
         # Create the table view
         self.table_view = QtWidgets.QTableView(self)
-        self.layout.addWidget(self.table_view)
+        self.mainlayout.addWidget(self.table_view)
         
         # Create the model and proxy model
         self.model = WGModsSearchResultsModel(search_results)
@@ -125,8 +140,79 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         self.table_view.resizeRowsToContents()
         self.table_view.setWordWrap(True)
         
-        # Connect the search bar to the filter method
+        # connect signals
         self.search_bar.textChanged.connect(self.filter_mods)
+        self.table_view.clicked.connect(self.table_view_left_click)
+
     
     def filter_mods(self, text):
         self.proxy_model.setFilterFixedString(text)
+
+    @QtCore.Slot()
+    def table_view_left_click(self):
+        # get the associated download info
+        index = self.table_view.currentIndex()
+        download_url = self.proxy_model.data(self.proxy_model.index(index.row(), 3))
+        mod_name = self.proxy_model.data(self.proxy_model.index(index.row(), 0))
+        game_version = self.proxy_model.data(self.proxy_model.index(index.row(), 2))
+        author = self.proxy_model.data(self.proxy_model.index(index.row(), 1))
+        modid = self.proxy_model.data(self.proxy_model.index(index.row(), 4))
+
+        if author == None:
+            author = "n/a"
+        # create a download dialog window
+        download_dialog = DownloadDialog(download_url, mod_name, game_version, author, modid)
+        download_dialog.exec()
+
+
+# Download dialog window class
+
+class DownloadDialog(QtWidgets.QDialog):
+    def __init__(self, download_url:str, mod_name:str, game_version:str, author:str, modid:int, parent=None):
+        super(DownloadDialog, self).__init__(parent)
+        self.download_url = download_url
+        self.mod_name = mod_name
+        self.game_version = game_version
+        self.author = author
+        self.modid = modid
+        
+        # window stuff
+        self.setWindowTitle(f"Download {self.mod_name} for {self.game_version}")
+        self.mainlayout = QtWidgets.QVBoxLayout(self)
+        self.lbl_info = QtWidgets.QLabel("Download information for:")
+        self.lbl_name = QtWidgets.QLabel(self.mod_name, wordWrap=True)
+        self.lbl_name.setFont(QtGui.QFont("Arial", 14, QtGui.QFont.Bold))
+        self.lbl_version = QtWidgets.QLabel("<b>For Game Version</b>: "+self.game_version)
+        self.lbl_wgid = QtWidgets.QLabel("wgmods ID: "+str(self.modid))
+        self.lbl_author = QtWidgets.QLabel("Author: "+self.author)
+        self.lbl_download_url = QtWidgets.QLabel("Download URL: "+self.download_url, wordWrap=True)
+        # buttons
+        self.download_button = QtWidgets.QPushButton("Download and install", self)
+        self.wgmodspage_button = QtWidgets.QPushButton("Show on wgmods.net", self)
+
+        # add widgets to layout
+        self.mainlayout.addWidget(self.lbl_info)
+        self.mainlayout.addWidget(self.lbl_name)
+        self.mainlayout.addWidget(self.lbl_version)
+        self.mainlayout.addWidget(self.lbl_wgid)
+        self.mainlayout.addWidget(self.lbl_author)
+        self.mainlayout.addWidget(self.lbl_download_url)
+
+        self.mainlayout.addWidget(self.download_button)
+        self.mainlayout.addWidget(self.wgmodspage_button)
+        # spacing policy
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        self.setFixedSize(self.sizeHint())
+        
+        # connect signals
+        self.download_button.clicked.connect(self.download_mod)
+        self.wgmodspage_button.clicked.connect(self.open_wgmods_page)
+    
+    @QtCore.Slot()
+    def download_mod(self):
+        print("Downloading mod from URL:", self.download_url)
+
+    @QtCore.Slot()
+    def open_wgmods_page(self):
+        print("Opening mod page on WGMods for mod ID:", self.modid)
+        webbrowser.open(f"https://wgmods.net/{self.modid}")

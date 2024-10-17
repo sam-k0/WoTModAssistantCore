@@ -283,6 +283,7 @@ namespace ModAssistant
         }
 
         // Expects the whole path to the .wotmod file
+        // Will install the mod if it is not already installed
         public Output InstallMod(string modPath)
         {
 
@@ -346,6 +347,8 @@ namespace ModAssistant
                              ActionCode.Install);
         }
 
+        // Expects the package ID of the mod
+        // Will only uninstall the first mod with the package ID
         public Output UninstallMod(string pkID)
         {
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
@@ -362,6 +365,7 @@ namespace ModAssistant
             return LogOutput("Mod not found", ErrorCode.ModNotFound, ActionCode.Uninstall);
         }
 
+        // Toggles the mod on or off
         public Output ToggleMod(string pkID){
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
             foreach (ModInfo mod in installedMods)
@@ -389,6 +393,7 @@ namespace ModAssistant
             return LogOutput("Mod not found", ErrorCode.ModNotFound, ActionCode.Toggle);
         }
 
+        // Activates all mods in the newest game version folder
         public Output ActivateAllMods()
         {
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
@@ -410,6 +415,7 @@ namespace ModAssistant
             return LogOutput("Activated all mods", ErrorCode.Success, ActionCode.SetAll);
         }
 
+        // Deactivates all mods in the newest game version folder
         public Output DeactivateAllMods()
         {
             List<ModInfo> installedMods = GetInstalledMods(GetNewestGameVersionFolder());
@@ -430,6 +436,7 @@ namespace ModAssistant
             return LogOutput("Deactivated all mods", ErrorCode.Success, ActionCode.SetAll);
         }
 
+        // Lists all mods in the newest game version folder
         public Output ListMods(string keyword)
         {
             List<string> outputs = new List<string>();
@@ -455,7 +462,93 @@ namespace ModAssistant
             return new Output(JsonConvert.SerializeObject(outputs), ErrorCode.Success, ActionCode.List);
         }
 
+        // Moves all mods from the newest game version folder to the gameVersionFolder
+        public Output MoveAllToVersionFromNewest(string gameVersionFolder)
+        {
+            List<string> items = GetGameVersionFoldersSorted();
+            if (items.Count < 2)
+            {
+                return LogOutput("Not enough game version folders to move mods", ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
+            }
 
+            string newest = items[items.Count - 1]; // The newest game version folder
+            // Check if the gameVersionFolder is valid
+            if (!items.Contains(gameVersionFolder))
+            {
+                return LogOutput("Invalid game version folder", ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
+            }
+            // Check if the gameVersionFolder is the newest one
+            if (gameVersionFolder == newest)
+            {
+                return LogOutput("The game version folder is already the newest one", ErrorCode.Success, ActionCode.MoveToNew);
+            }
+
+            // Move all mods from the newest game version folder to the gameVersionFolder
+            int moved = 0;
+            foreach (string file in Directory.EnumerateFiles(newest, "*.wotmod"))
+            {
+                // Get mod info
+                ModInfo movedmod = GetModInfo(file);
+                // Check if the mod exists as a newer version in the gameVersionFolder
+                bool exists = false;
+                foreach (string installedmod in Directory.EnumerateFiles(gameVersionFolder, "*.wotmod"))
+                {
+                    ModInfo oldmod = GetModInfo(installedmod);
+                    if (oldmod.PackageID == movedmod.PackageID)
+                    {
+                        try
+                        {
+                            if (int.Parse(oldmod.Version.Replace(".", "")) > int.Parse(movedmod.Version.Replace(".", "")))
+                            {
+                                if(!JsonOutput)
+                                {
+                                    System.Console.WriteLine("Mod " + movedmod.PackageID + " already has a newer version in the game version folder");
+                                }
+                                exists = true;
+                                break;
+                            }
+                            else
+                            {
+                                if(!JsonOutput)
+                                {
+                                    System.Console.WriteLine("Mod " + movedmod.PackageID + " has an older or equal version in the game version folder");
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            return LogOutput("Error comparing version numbers for mod" + movedmod.PackageID+ "\n"+e.Message, ErrorCode.FilesystemFailed, ActionCode.MoveToNew);
+                        }
+                    }
+                }
+                if (exists) // we do not want to install an older version, so we skip it
+                {
+                    continue;
+                }
+
+                moved += 1;
+                try
+                {
+                    File.Move(file, gameVersionFolder + "/" + Path.GetFileName(file));
+                }
+                catch (Exception e)
+                {
+                    moved -= 1; // Decrement the counter on error
+                    if(!JsonOutput)
+                    {
+                        System.Console.WriteLine("Error moving file: " + e.Message);
+                    }   
+                }
+            }
+
+            if (moved == 0)
+            {
+                return LogOutput("All mods are already imported from " + GetVersionNumber(newest), ErrorCode.Success, ActionCode.MoveToNew);
+            }
+            return LogOutput("Moved " + moved + " mods from " + GetVersionNumber(newest) + " to " + GetVersionNumber(gameVersionFolder), ErrorCode.Success, ActionCode.MoveToNew);
+        }
+
+        // Moves all mods from the gameVersionFolder to the newest game version folder
         public Output MoveAllToNewestFromGameVersion(string gameVersionFolder)
         {
             List<string> items = GetGameVersionFoldersSorted();
@@ -540,6 +633,9 @@ namespace ModAssistant
             }
             return LogOutput("Moved " + moved + " mods from " + GetVersionNumber(gameVersionFolder) + " to " + GetVersionNumber(newest), ErrorCode.Success, ActionCode.MoveToNew);
         }
+
+        // Moves a specific mod from the newest game version folder to the gameVersionFolder
+        // Does not check if the mod is already installed in the gameVersionFolder
         public Output MoveToNewestGameVersion(string pkID)
         {
             List<string> items = GetGameVersionFoldersSorted();
@@ -583,8 +679,5 @@ namespace ModAssistant
             }
            return LogOutput("Mod not found", ErrorCode.ModNotFound, ActionCode.MoveToNew);
         }
-
     }
-
-
 }

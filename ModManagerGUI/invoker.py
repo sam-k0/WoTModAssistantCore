@@ -178,6 +178,11 @@ class ModManagerCore:
         out = self.invoke(arglist)
         return out
     
+    def move_all_to_previous_version(self, version_folder:str):
+        arglist = ["--move-all-previous-version", version_folder]
+        out = self.invoke(arglist)
+        return out
+    
     def get_about(self):
         arglist = ["--about", "any"]
         out = self.invoke(arglist)

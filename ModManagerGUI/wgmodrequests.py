@@ -32,7 +32,7 @@ class WGModsRequest:
 
 
     def get_mod_page(self, mod_id:int):
-        self.mod_page_url = "https://wgmods.net/api/mods/{mod_id}"
+        self.mod_page_url = "https://wgmods.net/{mod_id}"
         self.mod_id = mod_id
         self.headers = {
             "Host": "wgmods.net",
@@ -55,7 +55,7 @@ class WGModsMod:
     def __init__(self, json_data:dict):
         self.json_dict = json_data
         self.mod_id = self.json_dict["id"]
-        self.author_name = self.json_dict["author_name"]
+        self.author_name = self.json_dict["owner"]["spa_username"]
         # mod name localized
         self.mod_name_eng = ""
         self.mod_name_rus = ""

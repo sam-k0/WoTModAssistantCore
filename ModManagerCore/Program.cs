@@ -139,6 +139,14 @@ foreach(ArgumentParser.Argument arg in argumentParser.ValidArguments)
             }
             break;
 
+        case ArgumentParser.ArgumentType.MoveAllPreviousVersion:
+            output = modManager.MoveAllToVersionFromNewest(arg.value);
+            if (modManager.JsonOutput)
+            {
+                Console.WriteLine(output.GetFullJson());
+            }
+            break;
+
 
         default:
             Console.WriteLine("Unknown command");

@@ -18,12 +18,17 @@ MacOS/darwin support is not planned but not explicitly impossible.
 - Deactivate, Activate mods
 - Import mods from previous game versions
 
-Below is a screenshot of the tool running on Linux Mint 21
+### Screenshots:
+### Screenshots:
 <br>
-<div style="text-align: center;">
-    <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screen1.png" alt="Description of image" width="50%"/>
+<div style="display: flex; justify-content: center;">
+    <div style="margin: 10px;">
+        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/mainview.png" alt="Main view" width="50%"/>
+    </div>
+    <div style="margin: 10px;">
+        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/browser.png" alt="mod browser" width="50%"/>
+    </div>
 </div>
-<br>
 
 Planned features:
 - [x] Automatic build actions for Linux
