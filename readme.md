@@ -17,8 +17,9 @@ MacOS/darwin support is not planned but not explicitly impossible.
 - Install, Uninstall mods
 - Deactivate, Activate mods
 - Import mods from previous game versions
+- Browse `wgmods.net` for mods
+- Drag and drop mod installation for `.wotmod` files
 
-### Screenshots:
 ### Screenshots:
 <br>
 <div style="display: flex; justify-content: center;">
@@ -33,7 +34,7 @@ MacOS/darwin support is not planned but not explicitly impossible.
 Planned features:
 - [x] Automatic build actions for Linux
 - [x] Automatic build actions for Windows
-- [ ] wgmods.net compatible mod browser integration
+- [-] wgmods.net compatible mod browser integration
 - [x] Easier setup of `ModManagerCore`, integrated to the GUI
 - [ ] Localization / language support
 - [ ] Styling and theming support

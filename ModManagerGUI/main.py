@@ -102,8 +102,8 @@ class MainWindow(QtWidgets.QWidget):
         self.tabs.addTab(self.mod_browser_tab, "Mod Browser")
 
         # Set the main layout of the window
-        self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.addWidget(self.tabs)
+        self.mainlayout = QtWidgets.QVBoxLayout(self)
+        self.mainlayout.addWidget(self.tabs)
 
         # Connect signals
         self.btn_refresh.clicked.connect(self.reload_mods_gui)
@@ -118,6 +118,9 @@ class MainWindow(QtWidgets.QWidget):
         self.btn_moveall_to_prev.clicked.connect(self.move_all_mods_to_prev)
 
         self.reload_mods()
+
+        # detect drag and drop
+        self.setAcceptDrops(True)
     
     def update_action_log(self, message:str, errcode:int=0,actioncode:int=-99):
         # only include error and action code if they are not the default
@@ -247,22 +250,32 @@ class MainWindow(QtWidgets.QWidget):
         exp.exec()
         self.reload_mods()
         
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
 
-    def setup_game_directory(self):
-        # open file dialog
-        while True: # do not let the user escape without selecting a valid game directory
-            foldername = QtWidgets.QFileDialog.getExistingDirectory(self, "Select game directory")
-            if foldername:
-                # check if it contains the WorldOfTanks.exe
-                if not "WorldOfTanks.exe" in os.listdir(foldername):
-                    self.show_error("This directory does not contain WorldOfTanks.exe", "Error: Invalid game directory")
+    # Reimplement dropEvent to handle the file drop
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()  # List of QUrls
+            file_paths = [url.toLocalFile() for url in urls]  # Convert QUrls to local file paths
+
+            for file_path in file_paths:
+                print("Dropped file: ", file_path)
+                # check if its a wotmod file
+                if file_path.endswith(".wotmod"):
+                    out = self.myinvoker.install_mod(file_path)
+                    resp, err, act = self.myinvoker.parse_response(out)
+                    if err != 0:
+                        self.show_error(resp, "Error: Could not install mod")
+                    self.update_action_log(resp, err, act)
+                    self.reload_mods()
                 else:
-                    break
-            else:
-                self.show_error("No directory selected, please select the game directory.", "Error: No directory selected")
-        
-        # set the game directory
-        self.myinvoker.set_game_installation_dir(foldername)
+                    self.show_error("Only .wotmod files are supported yet", "Error: Unsupported file type")
+        else:
+            event.ignore()
 
 
     def show_error(self, message:str, title:str, icon=QtWidgets.QMessageBox.Critical):
