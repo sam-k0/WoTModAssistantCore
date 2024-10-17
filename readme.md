@@ -32,12 +32,12 @@ MacOS/darwin support is not planned but not explicitly impossible.
 </div>
 
 Planned features:
-- [x] Automatic build actions for Linux
-- [x] Automatic build actions for Windows
-- [-] wgmods.net compatible mod browser integration
-- [x] Easier setup of `ModManagerCore`, integrated to the GUI
+- [x] wgmods.net compatible mod browser integration (currently in progress)
+- [ ] Modpack installer/`.exe` support
+- [ ] `.zip` pack support with dependency installation
+- [ ] `res_mods` directory support
 - [ ] Localization / language support
-- [ ] Styling and theming support
+- [ ] Styling and theming
 
 ## Installing
 Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.
