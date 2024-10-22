@@ -32,7 +32,13 @@ MacOS/darwin support is not planned but not explicitly impossible.
 </div>
 
 Planned features:
-- [x] wgmods.net compatible mod browser integration (currently in progress)
+- [x] wgmods.net compatible mod browser integration:
+    - [x] Mod listing
+    - [ ] Mod search by query
+    - [x] .wotmod file download and install
+    - [ ] .zip file download and install
+    - [ ] Modpack support
+    - [ ] Mod update checking
 - [ ] Modpack installer/`.exe` support
 - [ ] `.zip` pack support with dependency installation
 - [ ] `res_mods` directory support
