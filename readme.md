@@ -39,12 +39,10 @@ Planned features:
     - [ ] .zip file download and install
     - [ ] Modpack support
     - [ ] Mod update checking
-- [ ] Modpack installer/`.exe` support
-- [ ] `.zip` pack support with dependency installation
 - [ ] `res_mods` directory support
 - [ ] Localization / language support
 - [ ] Styling and theming
-
+- [ ] Autoupdater for ModManagerCore
 ## Installing
 Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.
 > [!TIP]
