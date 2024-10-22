@@ -44,12 +44,26 @@ class MainWindow(QtWidgets.QWidget):
 
         # Buttons
         self.btn_refresh = QtWidgets.QPushButton("Refresh mods")
+        self.btn_refresh.setToolTip("Refresh the list of installed mods")
+
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
+        self.btn_toggle.setToolTip("Toggle the selected mod between active and inactive")
+
         self.btn_install = QtWidgets.QPushButton("Install mod")
+        self.btn_install.setToolTip("Install a mod from a .wotmod file")
+
         self.btn_moveall = QtWidgets.QPushButton("Import mods from older game version")
+        self.btn_moveall.setToolTip("Move all mods from a previous game version to the current version")
+
         self.btn_disableall = QtWidgets.QPushButton("Disable all mods")
+        self.btn_disableall.setToolTip("Disable all installed mods")
+
         self.btn_enableall = QtWidgets.QPushButton("Enable all mods")
+        self.btn_enableall.setToolTip("Enable all installed mods")
+
         self.btn_moveall_to_prev = QtWidgets.QPushButton("Move all mods to a previous version")
+        self.btn_moveall_to_prev.setToolTip("Move all mods to a previous game version")
+
         if sys.platform == "linux":
             self.btn_disableall.setIcon(QtGui.QIcon.fromTheme("edit-delete"))
             self.btn_enableall.setIcon(QtGui.QIcon.fromTheme("emblem-default"))
@@ -91,7 +105,7 @@ class MainWindow(QtWidgets.QWidget):
         #region Mod Browser Tab
         self.mod_browser_tab = QtWidgets.QWidget()
         self.mod_browser_layout = QtWidgets.QVBoxLayout(self.mod_browser_tab)
-        self.mod_browser_view = wgb.WGModsSearchResultsView()
+        self.mod_browser_view = wgb.WGModsSearchResultsView(self.myinvoker)
         self.mod_browser_layout.addWidget(self.mod_browser_view)
         #endregion
 

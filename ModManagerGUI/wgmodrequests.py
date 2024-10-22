@@ -1,6 +1,16 @@
 import requests
 import json
 
+
+def download_from_url(url:str, fullfilepath:str):
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with open(fullfilepath, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+
+
 class WGModsRequest:
     def __init__(self):
         pass

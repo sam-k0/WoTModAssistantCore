@@ -1,6 +1,28 @@
 import wgmodrequests as wgmods
 from PySide6 import QtCore, QtWidgets, QtGui
 import webbrowser
+import invoker
+import sys, os
+
+# cross platform way to get the download directory for modbrowser
+# creates the directory if it doesn't exist
+def get_download_dir():
+    download_dir = ""
+    if sys.platform == "win32":
+        installation_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core","download")
+    elif sys.platform == "linux":
+        download_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core", "download")
+    else:
+        raise Exception("Unsupported platform: "+sys.platform)
+    
+    if not os.path.exists(download_dir):
+        os.makedirs(download_dir)
+    return download_dir
+
+def clear_download_dir():
+    download_dir = get_download_dir()
+    for file in os.listdir(download_dir):
+        os.remove(os.path.join(download_dir, file))
 
 class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
     def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None):
@@ -102,11 +124,11 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
 
 
 class WGModsSearchResultsView(QtWidgets.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self,myinvoker:invoker.ModManagerCore, parent=None):
         super(WGModsSearchResultsView, self).__init__(parent)
         
         search_results = wgmods.WGModsRequest().get_start_page("en", 20,5,1,185)
-
+        self.invoker_ref = myinvoker
         self.mainlayout = QtWidgets.QVBoxLayout(self)
         
         # Create the search bar
@@ -161,15 +183,15 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         if author == None:
             author = "n/a"
         # create a download dialog window
-        download_dialog = DownloadDialog(download_url, mod_name, game_version, author, modid)
+        download_dialog = DownloadDialog(download_url, mod_name, game_version, author, modid, self.invoker_ref)
         download_dialog.exec()
 
 
 # Download dialog window class
-
 class DownloadDialog(QtWidgets.QDialog):
-    def __init__(self, download_url:str, mod_name:str, game_version:str, author:str, modid:int, parent=None):
+    def __init__(self, download_url:str, mod_name:str, game_version:str, author:str, modid:int, myinvoker:invoker.ModManagerCore,parent=None):
         super(DownloadDialog, self).__init__(parent)
+        self.invoker_ref = myinvoker
         self.download_url = download_url
         self.mod_name = mod_name
         self.game_version = game_version
@@ -207,12 +229,41 @@ class DownloadDialog(QtWidgets.QDialog):
         # connect signals
         self.download_button.clicked.connect(self.download_mod)
         self.wgmodspage_button.clicked.connect(self.open_wgmods_page)
+
+        # set download button to disabled if download is not a .wotmod or .zip file
+        if not self.download_url.endswith(".wotmod"):
+            self.download_button.setEnabled(False)
+            self.download_button.setToolTip("Not available yet.")
     
     @QtCore.Slot()
     def download_mod(self):
         print("Downloading mod from URL:", self.download_url)
+        # get the download directory
+        download_dir = get_download_dir()
+        # clear download directory
+        print("Clearing download directory at ", download_dir)
+        clear_download_dir()
+
+        if self.download_url.endswith(".wotmod"):
+            self.download_install_wotmod(download_url=self.download_url)
 
     @QtCore.Slot()
     def open_wgmods_page(self):
         print("Opening mod page on WGMods for mod ID:", self.modid)
         webbrowser.open(f"https://wgmods.net/{self.modid}")
+
+    def download_install_wotmod(self, download_url:str):
+        localfilename = download_url.split("/")[-1] # get the filename from the URL
+        localpath = os.path.join(get_download_dir(), localfilename)
+        # download the file
+        wgmods.download_from_url(download_url, localpath)
+
+        #TODO: Extract the wotmod to the extract directory and add a key to the meta.xml file about the mod ID
+        # This will allow update checking on wgmods.net
+
+        # install the mod
+        self.invoker_ref.install_mod(localpath)
+        
+
+        
+    

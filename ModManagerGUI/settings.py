@@ -2,6 +2,7 @@ from PySide6 import QtCore, QtWidgets, QtGui
 import invoker
 import webbrowser
 
+
 class SettingsTabView(QtWidgets.QWidget):
     def __init__(self, invoker:invoker.ModManagerCore,parent=None):
         super(SettingsTabView, self).__init__(parent)
