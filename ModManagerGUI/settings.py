@@ -1,6 +1,7 @@
 from PySide6 import QtCore, QtWidgets, QtGui
 import invoker
 import webbrowser
+import sys
 
 
 class SettingsTabView(QtWidgets.QWidget):
@@ -18,29 +19,60 @@ class SettingsTabView(QtWidgets.QWidget):
     
     def init_widgets(self):
         self.lbl_settings_tab_top = QtWidgets.QLabel("Settings", alignment=QtCore.Qt.AlignCenter)
+        self.lbl_settings_tab_top.setFont(QtGui.QFont("Arial", 20, QtGui.QFont.Bold))
+
         self.lbl_detected_game_versions = QtWidgets.QLabel("Detected game versions:", alignment=QtCore.Qt.AlignCenter)   
         self.cbb_detected_game_versions = QtWidgets.QComboBox()
         self.cbb_detected_game_versions.addItem("none") # add a default item
-        self.lbl_num_installed_mods = QtWidgets.QLabel("Number of installed mods: 0", alignment=QtCore.Qt.AlignCenter)
 
-        self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: "+self.invoker_ref.installation_path, alignment=QtCore.Qt.AlignCenter)
-        self.lbl_moddir = QtWidgets.QLabel("Managing mods from: unknown", alignment=QtCore.Qt.AlignCenter)
-        self.lbl_about = QtWidgets.QLabel("About", alignment=QtCore.Qt.AlignCenter)
+        self.lbl_num_installed_mods = QtWidgets.QLabel("Number of installed mods: 0", alignment=QtCore.Qt.AlignLeft)
+
+        self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: "+self.invoker_ref.installation_path, alignment=QtCore.Qt.AlignLeft)
+        # horizontal line
+        self.line = QtWidgets.QFrame()
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+
+        self.lbl_moddir = QtWidgets.QLabel("Managing mods from: unknown", alignment=QtCore.Qt.AlignLeft)
+        self.lbl_about = QtWidgets.QLabel("About", alignment=QtCore.Qt.AlignLeft)
+
         self.btn_github = QtWidgets.QPushButton("View on GitHub")
+        self.btn_github.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
+        self.btn_open_mod_directory = QtWidgets.QPushButton("Show mod directory")
+        self.btn_open_mod_directory.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
-        self.lbl_settings_tab_top.setFont(QtGui.QFont("Arial", 20, QtGui.QFont.Bold))
+        self.btn_check_updates = QtWidgets.QPushButton("Check for updates")
+        self.btn_check_updates.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
+        self.btn_open_core_directory = QtWidgets.QPushButton("Show core directory")
+        self.btn_open_core_directory.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
+        self.lbl_credit = QtWidgets.QLabel("Made with ♥ by sam-k0 and contributors.", alignment=QtCore.Qt.AlignCenter)
+
+        # hlayout for buttons in a row
+        self.hlayout = QtWidgets.QHBoxLayout()
+        self.hlayout.addWidget(self.btn_github, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_open_mod_directory, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_check_updates, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_open_core_directory, alignment=QtCore.Qt.AlignBottom)
+
 
         self.mainlayout.addWidget(self.lbl_settings_tab_top)
         self.mainlayout.addWidget(self.lbl_detected_game_versions)
         self.mainlayout.addWidget(self.cbb_detected_game_versions)
+        self.mainlayout.addWidget(self.line)
         self.mainlayout.addWidget(self.lbl_installdir)
         self.mainlayout.addWidget(self.lbl_moddir)
         self.mainlayout.addWidget(self.lbl_num_installed_mods)
         self.mainlayout.addWidget(self.lbl_about)
-        self.mainlayout.addWidget(self.btn_github)
+        self.mainlayout.addLayout(self.hlayout)
+        self.mainlayout.addWidget(self.lbl_credit)
 
         self.btn_github.clicked.connect(self.on_btn_github_clicked)
+        self.btn_open_mod_directory.clicked.connect(self.on_btn_open_moddirectory_clicked)
+        self.btn_check_updates.clicked.connect(self.on_btn_check_updates_clicked)
+        self.btn_open_core_directory.clicked.connect(self.on_btn_open_coredirectory_clicked)
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.setFixedSize(self.sizeHint())  # Makes the window non-resizable and just large enough to fit content
@@ -71,3 +103,33 @@ class SettingsTabView(QtWidgets.QWidget):
         # cross platform way to open a browser
         url = "https://github.com/sam-k0/WoTModAssistantCore"
         webbrowser.open(url, 0, True)
+
+    @QtCore.Slot()
+    def on_btn_open_moddirectory_clicked(self):
+        # cross platform way to open a file explorer is using the webbrowser.
+        # get selected item from combobox
+        path = "file://"+self.cbb_detected_game_versions.currentText()
+
+        if sys.platform == "win32":
+            webbrowser.open(path,0, True)
+        elif sys.platform == "linux":
+            webbrowser.open(path,0, True)
+
+    @QtCore.Slot()
+    def on_btn_open_coredirectory_clicked(self):
+        # cross platform way to open a file explorer is using the webbrowser.
+        #cut off the last part of the path as it points to the executable
+
+        split =  self.invoker_ref.installation_path.split("/")
+        path = "file://"+"/".join(split[:-1])
+
+
+        if sys.platform == "win32":
+            webbrowser.open(path,0, True)
+        elif sys.platform == "linux":
+            webbrowser.open(path,0, True)
+
+    @QtCore.Slot()
+    def on_btn_check_updates_clicked(self):
+        # check for updates
+        pass
