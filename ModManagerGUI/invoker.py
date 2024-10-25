@@ -33,6 +33,12 @@ class ModManagerCore:
             raise Exception("Unsupported platform: "+sys.platform)
         return installation_path
 
+    def get_extraction_path(self):
+        extract_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core", "extract")
+        if not os.path.isdir(extract_dir):
+            os.mkdir(extract_dir)
+        return extract_dir
+
     def __parse_mod(self, jstr:str):
         jmod = json.loads(jstr)
         return Mod(jmod["ModName"],

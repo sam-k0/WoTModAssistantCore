@@ -513,9 +513,6 @@ class ExportPrevModsWindow(QtWidgets.QDialog):
         self.close()
 
 
-
-
-
 if __name__ == '__main__':
     argadd = []
     if sys.platform == "linux":

@@ -3,6 +3,8 @@ from PySide6 import QtCore, QtWidgets, QtGui
 import webbrowser
 import invoker
 import sys, os
+import zipfile
+import xml.etree.ElementTree as ET
 
 # cross platform way to get the download directory for modbrowser
 # creates the directory if it doesn't exist
@@ -252,14 +254,51 @@ class DownloadDialog(QtWidgets.QDialog):
         print("Opening mod page on WGMods for mod ID:", self.modid)
         webbrowser.open(f"https://wgmods.net/{self.modid}")
 
+    # Unpacks a .wotmod file, injects the mod ID into the meta.xml file, and repacks the .wotmod file
+    def inject_wgmodid_to_meta(self, localpath:str):
+        print("Extracting mod to ", self.invoker_ref.get_extraction_path())
+        target = self.invoker_ref.get_extraction_path() + os.sep + self.mod_name
+        with zipfile.ZipFile(localpath, 'r') as zip_ref:
+            zip_ref.extractall(target)
+        
+        # find the meta.xml file
+        metafile = None
+        for root, dirs, files in os.walk(target):
+            for file in files:
+                if file == "meta.xml":
+                    metafile = os.path.join(root, file)
+                    break
+            if metafile != None:
+                break
+        # add the mod ID to the meta.xml file
+        if metafile != None:
+            tree = ET.parse(metafile)
+            root = tree.getroot()
+            modid = ET.SubElement(root, "wgid")
+            modid.text = str(self.modid)
+            tree.write(metafile)
+            print("Added mod ID to meta.xml file for mod:", self.mod_name)
+        else:
+            FileNotFoundError("Failed to add mod ID to meta.xml file for mod:", self.mod_name)
+        
+                # repack the mod back to a .wotmod file
+        with zipfile.ZipFile(localpath, 'w') as zip_ref:
+            for root, dirs, files in os.walk(target):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    arcname = os.path.relpath(file_path, target)
+                    zip_ref.write(file_path, arcname)
+        
+        print("Repacked mod to ", localpath)
+
     def download_install_wotmod(self, download_url:str):
         localfilename = download_url.split("/")[-1] # get the filename from the URL
         localpath = os.path.join(get_download_dir(), localfilename)
         # download the file
         wgmods.download_from_url(download_url, localpath)
-
-        #TODO: Extract the wotmod to the extract directory and add a key to the meta.xml file about the mod ID
-        # This will allow update checking on wgmods.net
+        
+        # inject the mod ID into the meta.xml file
+        self.inject_wgmodid_to_meta(localpath)
 
         # install the mod
         self.invoker_ref.install_mod(localpath)

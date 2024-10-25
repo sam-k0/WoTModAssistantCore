@@ -83,6 +83,11 @@ namespace ModAssistant
                 Description = xmlDict["description"];
             }
 
+            if(xmlKeyExists(xmlDoc, "wgid"))
+            {
+                ModID = xmlDict["wgid"];
+            }
+
             IsEnabled = isEnabled;
             LocalFileName = localFileName;
 
