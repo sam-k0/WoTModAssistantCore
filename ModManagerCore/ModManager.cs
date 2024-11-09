@@ -201,14 +201,32 @@ namespace ModAssistant
                 ZipFile.ExtractToDirectory(file, extractFolder);
                 ModInfo mod;
                 // Check if the meta.xml file exists
-                if (!File.Exists(extractFolder + "/meta.xml"))
+                if (!File.Exists(extractFolder + "/meta.xml")) // Create a dummy xml file with default values
                 {
-                    mod = new ModInfo(Path.GetFileName(file), "unknown", Path.GetFileName(file),
-                                    "0.0.0", "No description available", Path.GetFileName(file));
-                    mods.Add(mod);
-                    // Clean up
-                    ConfigIO.ClearExtractFolder();
-                    continue;
+                    // Create a dummy xml file with default values
+                    // Prototype string with $ for string interpolation
+                    // Get the name of the file without the extension
+                    string beautiful = Path.GetFileNameWithoutExtension(file);
+                    string proto = $"""
+                    <root>
+                        <id>{Path.GetFileName(file)}</id>
+                        <version>1.0.0</version>
+                        <name>{beautiful}</name>
+                        <description>
+                        No description available.
+                        The metadata was added by ModManagerCore.
+                        </description>
+                    </root>
+                    """;
+                    File.WriteAllText(extractFolder + "/meta.xml", proto);
+
+                    // Repack to the .wotmod file with the dummy xml file
+                    // put it to the mods folder
+                    ZipArchive archive = ZipFile.Open(file, ZipArchiveMode.Update);
+                    archive.CreateEntryFromFile(extractFolder + "/meta.xml", "meta.xml");
+                    archive.Dispose();
+                    // This sneaky move is to avoid the file being locked by the ZipFile.ExtractToDirectory method
+                    // and also to create the xml file before the mod is added to the list
                 }
                 string xmlstr = File.ReadAllText(extractFolder + "/meta.xml");
                 mod = new ModInfo(xmlstr, true, Path.GetFileName(file));

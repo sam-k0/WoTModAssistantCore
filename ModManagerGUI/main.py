@@ -15,11 +15,10 @@ class MainWindow(QtWidgets.QWidget):
         if not os.path.exists(self.myinvoker.installation_path):
             self.show_error("Could not find the ModManagerCore executable at "+self.myinvoker.installation_path, "Error: Core not found")
             sys.exit(1)
-
                 # Setup check
         if not self.myinvoker.get_game_installation_dir():
             self.show_error("It appears you are running this for the first time. Please select the game directory.", "First time setup", QtWidgets.QMessageBox.Information)
-            self.setup_game_directory()
+            self.setup_game_dir()
         else:
             print("Game directory already set to: ", self.myinvoker.get_game_installation_dir())
 
@@ -182,6 +181,19 @@ class MainWindow(QtWidgets.QWidget):
                 self.mod_model.appendRow(item)
 
 
+    def setup_game_dir(self):
+        while True:
+            # open file dialog
+            folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select game directory")
+            if folder:
+                if self.myinvoker.set_game_installation_dir(folder):
+                    self.show_error("Game directory set successfully.", "Success: Game directory set", QtWidgets.QMessageBox.Information)
+                    break
+                else:
+                    self.show_error("Could not set the game directory. Please try again.", "Error: Could not set game directory")
+            else:
+                self.show_error("No directory selected. Please select the game directory.", "Error: No directory selected")
+
     @QtCore.Slot()
     def install_mod(self):
         # open file dialog
@@ -295,7 +307,10 @@ class MainWindow(QtWidgets.QWidget):
     def show_error(self, message:str, title:str, icon=QtWidgets.QMessageBox.Critical):
         msg = QtWidgets.QMessageBox()
         msg.setIcon(icon)
-        msg.setText("Error: "+message)
+        prefix = "Error: "
+        if icon == QtWidgets.QMessageBox.Information:
+            prefix = "Info: "
+        msg.setText(prefix+message)
         msg.setWindowTitle(title)
         msg.exec()
 
