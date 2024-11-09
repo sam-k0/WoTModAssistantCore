@@ -35,6 +35,7 @@ Planned features:
 - [x] wgmods.net compatible mod browser integration:
     - [x] Mod listing
     - [ ] Mod search by query
+        - [x] Local cache can be searched
     - [x] .wotmod file download and install
     - [ ] .zip file download and install
     - [ ] Modpack support
