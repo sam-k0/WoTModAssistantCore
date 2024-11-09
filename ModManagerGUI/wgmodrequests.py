@@ -2,12 +2,22 @@ import requests
 import json
 
 
-def download_from_url(url:str, fullfilepath:str):
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
+def download_from_url(url:str, fullfilepath:str, progress_callback=None):
+    resp= requests.get(url, stream=True)
+    total_size = int(resp.headers.get('content-length', 0))
+
+    if total_size == 0:
         with open(fullfilepath, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+            f.write(resp.content)
+    else:
+        downloaded = 0
+        with open(fullfilepath, 'wb') as f:
+            for data in resp.iter_content(chunk_size=4096):
+                downloaded += len(data)
+                f.write(data)
+                if progress_callback:
+                    progress_callback(downloaded, total_size)
+
 
 
 

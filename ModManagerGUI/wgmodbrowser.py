@@ -209,7 +209,13 @@ class DownloadDialog(QtWidgets.QDialog):
         self.lbl_version = QtWidgets.QLabel("<b>For Game Version</b>: "+self.game_version)
         self.lbl_wgid = QtWidgets.QLabel("wgmods ID: "+str(self.modid))
         self.lbl_author = QtWidgets.QLabel("Author: "+self.author)
-        self.lbl_download_url = QtWidgets.QLabel("Download URL: "+self.download_url, wordWrap=True)
+        # get the last part of the download URL, the filetype
+        self.lbl_download_url = QtWidgets.QLabel("Download type: "+self.download_url.split(".")[-1], wordWrap=True)
+        # progressbar for download
+        self.progressbar = QtWidgets.QProgressBar(self)
+        # set to hidden by default
+        self.progressbar.hide()
+
         # buttons
         self.download_button = QtWidgets.QPushButton("Download and install", self)
         self.wgmodspage_button = QtWidgets.QPushButton("Show on wgmods.net", self)
@@ -224,6 +230,7 @@ class DownloadDialog(QtWidgets.QDialog):
 
         self.mainlayout.addWidget(self.download_button)
         self.mainlayout.addWidget(self.wgmodspage_button)
+        self.mainlayout.addWidget(self.progressbar)
         # spacing policy
         self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         self.setFixedSize(self.sizeHint())
@@ -291,17 +298,30 @@ class DownloadDialog(QtWidgets.QDialog):
         
         print("Repacked mod to ", localpath)
 
+    def callback_progress(self, downloaded:int, total:int):
+        self.progressbar.show()
+        self.progressbar.setMaximum(total)
+        self.progressbar.setValue(downloaded)
+        if downloaded == total:
+            self.progressbar.hide()
+            # set the download button to disabled
+            self.download_button.setEnabled(False)
+            self.download_button.setText("Installed!")
+            self.download_button.setToolTip("Already installed!")
+
     def download_install_wotmod(self, download_url:str):
         localfilename = download_url.split("/")[-1] # get the filename from the URL
         localpath = os.path.join(get_download_dir(), localfilename)
         # download the file
-        wgmods.download_from_url(download_url, localpath)
+        wgmods.download_from_url(download_url, localpath, self.callback_progress)
         
         # inject the mod ID into the meta.xml file
         self.inject_wgmodid_to_meta(localpath)
 
         # install the mod
         self.invoker_ref.install_mod(localpath)
+        # Clean up the download directory
+        clear_download_dir()
         
 
         
