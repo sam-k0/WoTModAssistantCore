@@ -6,6 +6,52 @@ import invoker
 import settings as settingstab
 import wgmodbrowser as wgb
 
+
+class ModsTableModel(QtCore.QAbstractTableModel):
+    def __init__(self, mods:list, parent=None):
+        super(ModsTableModel, self).__init__(parent)
+        self.mods = mods
+        self.header_labels = ["Name", "Mod Version", "Is Enabled?"]
+
+    def rowCount(self, parent):
+        return len(self.mods)
+
+    def columnCount(self, parent):
+        return len(self.header_labels)
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        mod:invoker.Mod = self.mods[index.row()]
+        if role == QtCore.Qt.DisplayRole:
+            if index.column() == 0:
+                return mod.name
+            elif index.column() == 1:
+                return mod.version
+            elif index.column() == 2:
+                return "Yes" if mod.isenabled else "No"
+        elif role == QtCore.Qt.UserRole:
+            return mod
+        return None
+
+    def headerData(self, section, orientation, role):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return self.header_labels[section]
+        return None
+
+    def sort(self, column, order):
+        self.layoutAboutToBeChanged.emit()
+        if column == 0:
+            self.mods.sort(key=lambda x: x.name)
+        elif column == 1:
+            self.mods.sort(key=lambda x: x.version)
+        elif column == 2:
+            self.mods.sort(key=lambda x: x.isenabled)
+        if order == QtCore.Qt.DescendingOrder:
+            self.mods.reverse()
+        self.layoutChanged.emit()
+
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -37,9 +83,26 @@ class MainWindow(QtWidgets.QWidget):
         self.lbl_description = QtWidgets.QLabel("Description", alignment=QtCore.Qt.AlignCenter, wordWrap=True)
         self.lbl_action_log = QtWidgets.QLabel("Action log", alignment=QtCore.Qt.AlignCenter)
         self.lbl_action_log.setWordWrap(True)
-        self.mod_list_view = QtWidgets.QListView(self)
-        self.mod_model = QtGui.QStandardItemModel(self.mod_list_view)
-        self.mod_list_view.setModel(self.mod_model)
+
+        # Replace QListView with QTableView
+        self.mod_table_view = QtWidgets.QTableView(self)
+        self.mod_table_view.setModel(ModsTableModel([]))
+        self.mod_table_view.setSortingEnabled(True)
+        self.mod_table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.mod_table_view.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.mod_table_view.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.mod_table_view.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.mod_table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.mod_table_view.setShowGrid(True)
+        self.mod_table_view.setAlternatingRowColors(False)
+        self.mod_table_view.setSortingEnabled(True)
+        self.mod_table_view.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.mod_table_view.resizeColumnsToContents()
+        self.mod_table_view.resizeRowsToContents()
+        # make the table have a greedy height
+        self.mod_table_view.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.mod_table_view.setWordWrap(True)
+        self.mod_table_view.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
 
         # Buttons
         self.btn_refresh = QtWidgets.QPushButton("Refresh mods")
@@ -75,7 +138,7 @@ class MainWindow(QtWidgets.QWidget):
         # Set up main layout
         self.mainlayout.addSpacing(10)
         self.mainlayout.addWidget(self.lbl_installed)
-        self.mainlayout.addWidget(self.mod_list_view)
+        self.mainlayout.addWidget(self.mod_table_view)
         self.mainlayout.addWidget(self.lbl_details)
         self.mainlayout.addWidget(self.lbl_description)
         self.mainlayout.addStretch()
@@ -125,9 +188,11 @@ class MainWindow(QtWidgets.QWidget):
         self.btn_disableall.clicked.connect(self.disable_all)
         self.btn_enableall.clicked.connect(self.enable_all)
         self.btn_moveall.clicked.connect(self.move_all_mods)
-        self.mod_list_view.selectionModel().currentChanged.connect(self.display_mod_details)
-        self.mod_list_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.mod_list_view.customContextMenuRequested.connect(self.show_mod_details_window)
+        #register table view click event
+        self.mod_table_view.clicked.connect(self.display_mod_details)
+        
+        self.mod_table_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.mod_table_view.customContextMenuRequested.connect(self.show_mod_details_window)
         self.btn_moveall_to_prev.clicked.connect(self.move_all_mods_to_prev)
 
         self.reload_mods()
@@ -154,15 +219,8 @@ class MainWindow(QtWidgets.QWidget):
                 self.update_action_log(mods, err, action)
                 return
 
-            # reset model
-            self.mod_model.clear()
-            # populate model with mod items
-            for mod in mods:   
-                active = "Active" if mod.isenabled else "Inactive"
-                item = QtGui.QStandardItem(mod.name + " (v" + mod.version + ")" + " - " + active)
-                item.setData(mod, QtCore.Qt.UserRole)
-                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-                self.mod_model.appendRow(item)
+            self.mod_model = ModsTableModel(mods)
+            self.mod_table_view.setModel(self.mod_model)
 
             if updateLog:
                 self.update_action_log("Successfully refreshed mods", err, action)
@@ -171,15 +229,10 @@ class MainWindow(QtWidgets.QWidget):
             self.show_error("Could not refresh mods: "+str(e), "Error: Could not refresh mods")
 
             # Set some dummy mods
-            self.mod_model.clear()
+            # Set some dummy mods
             mods = [invoker.Mod("Dummy Mod","wgi231", "com.dummy.mod", "1.0", "This is a dummy mod", "dummy.wotmod", True)]
-            for mod in mods:
-                active = "Active" if mod.isenabled else "Inactive"
-                item = QtGui.QStandardItem(mod.name + " (v" + mod.version + ")" + " - " + active)
-                item.setData(mod, QtCore.Qt.UserRole)
-                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-                self.mod_model.appendRow(item)
-
+            self.mod_model = ModsTableModel(mods)
+            self.mod_table_view.setModel(self.mod_model)
 
     def setup_game_dir(self):
         while True:
@@ -208,25 +261,30 @@ class MainWindow(QtWidgets.QWidget):
                 self.show_error("Could not install mod: "+str(e), "Error: Could not install mod")
         else:
             self.show_error("No file selected", "Error: No file selected")
+    
     # show mod details when a mod is selected
-    @QtCore.Slot(QtCore.QModelIndex, QtCore.QModelIndex)
-    def display_mod_details(self, index):
-        # check if the index is valid
-        if not index.isValid():
-            return
-
+    @QtCore.Slot()
+    def display_mod_details(self):
+        
+        index = self.mod_table_view.currentIndex()
+        # get mod from index
         mod:invoker.Mod = index.data(QtCore.Qt.UserRole)
-        self.lbl_details.setText(f"{mod.name} (v{mod.version}) - {mod.pckid}")
-        self.lbl_description.setText(mod.desc)
+        if mod is not None:
+            mod:invoker.Mod = index.data(QtCore.Qt.UserRole)
+            self.lbl_details.setText(f"{mod.name} (v{mod.version}) - {mod.pckid}")
+            self.lbl_description.setText(mod.desc)
 
     # Handler for right-clicking a mod
     @QtCore.Slot(QtCore.QPoint)
     def show_mod_details_window(self, index):
-        index = self.mod_list_view.indexAt(index)
+        index = self.mod_table_view.indexAt(index)
         if not index.isValid():
             return
 
         mod:invoker.Mod = index.data(QtCore.Qt.UserRole)
+        if mod is None:
+            print("No mod selected")
+            return
         secondary = ModInfoWindow(mod, self)
         secondary.exec()
         # Reload mods in case the mod was toggled or changed
@@ -234,7 +292,7 @@ class MainWindow(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def toggle_mod(self):
-        index = self.mod_list_view.currentIndex()
+        index = self.mod_table_view.currentIndex()
         if not index.isValid():
             print("No mod selected")
             return
