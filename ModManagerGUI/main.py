@@ -84,7 +84,7 @@ class MainWindow(QtWidgets.QWidget):
         self.lbl_action_log = QtWidgets.QLabel("Action log", alignment=QtCore.Qt.AlignCenter)
         self.lbl_action_log.setWordWrap(True)
 
-        # Replace QListView with QTableView
+        # Mod table view
         self.mod_table_view = QtWidgets.QTableView(self)
         self.mod_table_view.setModel(ModsTableModel([]))
         self.mod_table_view.setSortingEnabled(True)
@@ -99,8 +99,7 @@ class MainWindow(QtWidgets.QWidget):
         self.mod_table_view.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.mod_table_view.resizeColumnsToContents()
         self.mod_table_view.resizeRowsToContents()
-        # make the table have a greedy height
-        self.mod_table_view.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.mod_table_view.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)  # make the table have a greedy height
         self.mod_table_view.setWordWrap(True)
         self.mod_table_view.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
 
