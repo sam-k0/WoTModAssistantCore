@@ -178,16 +178,6 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
     def __init__(self,myinvoker:invoker.ModManagerCore, parent=None):
         super(WGModsSearchResultsView, self).__init__(parent)
         
-        # Try to get search results with error handling
-        try:
-            search_results = wgmods.WGModsRequest().get_start_page("en", 20,20,20,196)
-            if search_results is None:
-                raise Exception("Failed to get search results from wgmods.net")
-        except Exception as e:
-            print(f"Error loading mod browser data: {e}")
-            # Create empty search results as fallback with proper structure
-            empty_json = '{"new": {"count": 0, "results": []}, "recommended": {"count": 0, "results": []}, "updated": {"count": 0, "results": []}}'
-            search_results = wgmods.WGModsSearchResults(empty_json, "start_page")
         self.invoker_ref = myinvoker
         self.mainlayout = QtWidgets.QVBoxLayout(self)
         
@@ -210,24 +200,31 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         else:
             self.search_button.setText("🔍")  # Unicode spyglass as fallback
         
+        # Add numberic input for version number
+        self.game_version_input = QtWidgets.QSpinBox(self)
+        self.game_version_input.setRange(0, 999) 
+        self.game_version_input.setValue(0)
+
+        # Button for showing default start page
+        self.show_start_page_button = QtWidgets.QPushButton("Start Page", self)
+        self.show_start_page_button.setToolTip("Show default start page")
+
+        # Add widgets to the search layout
         self.search_layout.addWidget(self.search_bar)
         self.search_layout.addWidget(self.search_button)
+        self.search_layout.addWidget(self.game_version_input)
+        self.search_layout.addWidget(self.show_start_page_button)
         self.mainlayout.addLayout(self.search_layout)
         
         # Create the table view
         self.table_view = QtWidgets.QTableView(self)
         self.mainlayout.addWidget(self.table_view)
         
-        # Create the model and proxy model
-        try:
-            self.model = WGModsSearchResultsModel(search_results)
-        except Exception as e:
-            print(f"Error creating model: {e}")
-            # Create empty model as fallback with proper structure
-            empty_json = '{"new": {"count": 0, "results": []}, "recommended": {"count": 0, "results": []}, "updated": {"count": 0, "results": []}}'
-            empty_results = wgmods.WGModsSearchResults(empty_json, "start_page")
-            self.model = WGModsSearchResultsModel(empty_results)
-            
+        # Create the model and proxy model, empty by default
+        empty_json = '{"new": {"count": 0, "results": []}, "recommended": {"count": 0, "results": []}, "updated": {"count": 0, "results": []}}'
+        empty_results = wgmods.WGModsSearchResults(empty_json, "start_page")
+        self.model = WGModsSearchResultsModel(empty_results)
+        
         self.proxy_model = QtCore.QSortFilterProxyModel(self)
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
@@ -253,6 +250,22 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         self.search_bar.returnPressed.connect(self.perform_search)
         self.search_button.clicked.connect(self.perform_search)
         self.table_view.clicked.connect(self.table_view_left_click)
+        self.show_start_page_button.clicked.connect(self.show_start_page)
+
+        # Show the start page by default
+        self.show_start_page()
+
+    def get_start_page(self):
+        try:
+            search_results = wgmods.WGModsRequest().get_start_page("en", 20,20,20, self.game_version_input.value())
+            if search_results is None:
+                raise Exception("Failed to get search results from wgmods.net")
+        except Exception as e:
+            print(f"Error loading mod browser data: {e}")
+            # Create empty search results as fallback with proper structure
+            empty_json = '{"new": {"count": 0, "results": []}, "recommended": {"count": 0, "results": []}, "updated": {"count": 0, "results": []}}'
+            search_results = wgmods.WGModsSearchResults(empty_json, "start_page")
+        return search_results
 
     
     def filter_mods(self, text):
@@ -264,7 +277,8 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         if search_text:
             print(f"Searching wgmods for: {search_text}")
             # Perform the search using wgmods.WGModsRequest().get_search_results()
-            search_results = wgmods.WGModsRequest().get_search_results(search_text, "en", 20, 196)
+
+            search_results = wgmods.WGModsRequest().get_search_results(search_text, "en", 20, self.game_version_input.value())
             if search_results:
                 self.model = WGModsSearchResultsModel(search_results, search_type="search_results")
                 self.proxy_model.setSourceModel(self.model)
@@ -274,6 +288,15 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         else:
             # Clear filter if search is empty
             self.proxy_model.setFilterFixedString("")
+
+    @QtCore.Slot()
+    def show_start_page(self):
+        results = self.get_start_page()
+        self.model = WGModsSearchResultsModel(results, search_type="start_page")
+        self.proxy_model.setSourceModel(self.model)
+        self.table_view.setModel(self.proxy_model)
+        self.table_view.resizeColumnsToContents()
+        self.table_view.resizeRowsToContents()
 
     @QtCore.Slot()
     def table_view_left_click(self):

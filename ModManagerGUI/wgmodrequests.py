@@ -55,7 +55,12 @@ class WGModsRequest:
 
     def get_search_results(self, search_query:str, language:str, limit:int, game_version:int):
         # https://wgmods.net/api/mods/?limit=12&offset=0&ordering=-rating&query=Replay&game_version_id=196
-        self.search_url = "https://wgmods.net/api/mods/?limit={limit}&offset=0&ordering=-rating&query={search_query}&game_version_id={game_version}&language={language}"
+
+        # if game_version is 0 or None, it will not be included in the URL
+        if game_version == 0 or game_version is None:
+            self.search_url = "https://wgmods.net/api/mods/?limit={limit}&offset=0&ordering=-rating&query={search_query}&language={language}"
+        else:
+            self.search_url = "https://wgmods.net/api/mods/?limit={limit}&offset=0&ordering=-rating&query={search_query}&game_version_id={game_version}&language={language}"
         self.search_query = search_query
         self.language = language
         self.limit = limit
