@@ -228,7 +228,6 @@ class MainWindow(QtWidgets.QWidget):
             self.show_error("Could not refresh mods: "+str(e), "Error: Could not refresh mods")
 
             # Set some dummy mods
-            # Set some dummy mods
             mods = [invoker.Mod("Dummy Mod","wgi231", "com.dummy.mod", "1.0", "This is a dummy mod", "dummy.wotmod", True)]
             self.mod_model = ModsTableModel(mods)
             self.mod_table_view.setModel(self.mod_model)

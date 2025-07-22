@@ -27,16 +27,31 @@ def clear_download_dir():
         os.remove(os.path.join(download_dir, file))
 
 class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
-    def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None):
+    def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None, search_type:str="start_page"):
+        if search_type not in ["start_page", "search_results"]:
+            raise ValueError("Invalid search type. Must be 'start_page' or 'search_results'.")
         super(WGModsSearchResultsModel, self).__init__(parent)
         self.search_results = search_results
-        self.new_mods_list = self.search_results.new_mods_list
-        self.recommended_mods_list = self.search_results.recommended_mods_list
-        self.updated_mods_list = self.search_results.updated_mods_list
+        self.result_type = search_type
+
+        # Initialize lists based on the search results
+        if search_type == "start_page":        
+            self.new_mods_list = self.search_results.new_mods_list
+            self.recommended_mods_list = self.search_results.recommended_mods_list
+            self.updated_mods_list = self.search_results.updated_mods_list
+        elif search_type == "search_results": # use the recommended mods list for search results
+            self.recommended_mods_list = self.search_results.search_mods_list
+            self.new_mods_list = []
+            self.updated_mods_list = []
+
         self.header_labels = ["Mod Name", "Author", "Game Version", "Download URL", "Mod ID"]
     
     def rowCount(self, parent):
-        return len(self.search_results.get_new_mods()) + len(self.search_results.get_recommended_mods()) + len(self.search_results.get_updated_mods())
+        if self.result_type == "start_page":
+            return len(self.new_mods_list) + len(self.recommended_mods_list) + len(self.updated_mods_list)
+        elif self.result_type == "search_results":
+            return len(self.recommended_mods_list)  # search results are stored in recommended_mods_list
+        return 0
     
     def columnCount(self, parent):
         return len(self.header_labels)
@@ -45,45 +60,62 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return None
         if role == QtCore.Qt.DisplayRole:
-            if index.column() == 0: # The real count of mods is determined by list length.
-                if index.row() < len(self.new_mods_list):
-                    return self.new_mods_list[index.row()].mod_name_eng
-                elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
-                    return self.recommended_mods_list[index.row() - len(self.new_mods_list)].mod_name_eng
-                else:
-                    return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].mod_name_eng
-                
-            elif index.column() == 1:
-                if index.row() < len(self.new_mods_list):
-                    return self.new_mods_list[index.row()].author_name
-                elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
-                    return self.recommended_mods_list[index.row() - len(self.new_mods_list)].author_name
-                else:
-                    return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].author_name
-                
-            elif index.column() == 2:
-                if index.row() < len(self.new_mods_list):
-                    return self.new_mods_list[index.row()].game_version_human
-                elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
-                    return self.recommended_mods_list[index.row() - len(self.new_mods_list)].game_version_human
-                else:
-                    return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].game_version_human
-                
-            elif index.column() == 3:
-                if index.row() < len(self.new_mods_list):
-                    return self.new_mods_list[index.row()].download_url
-                elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
-                    return self.recommended_mods_list[index.row() - len(self.new_mods_list)].download_url
-                else:
-                    return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].download_url
-                
-            elif index.column() == 4:
-                if index.row() < len(self.new_mods_list):
-                    return self.new_mods_list[index.row()].mod_id
-                elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
-                    return self.recommended_mods_list[index.row() - len(self.new_mods_list)].mod_id
-                else:
-                    return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].mod_id
+            # Handle different result types
+            if self.result_type == "search_results":
+                # For search results, everything is in recommended_mods_list
+                if index.row() < len(self.recommended_mods_list):
+                    mod = self.recommended_mods_list[index.row()]
+                    if index.column() == 0:
+                        return mod.mod_name_eng
+                    elif index.column() == 1:
+                        return mod.author_name
+                    elif index.column() == 2:
+                        return mod.game_version_human
+                    elif index.column() == 3:
+                        return mod.download_url
+                    elif index.column() == 4:
+                        return mod.mod_id
+            else:
+                # For start_page results, use the original logic
+                if index.column() == 0: # The real count of mods is determined by list length.
+                    if index.row() < len(self.new_mods_list):
+                        return self.new_mods_list[index.row()].mod_name_eng
+                    elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
+                        return self.recommended_mods_list[index.row() - len(self.new_mods_list)].mod_name_eng
+                    else:
+                        return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].mod_name_eng
+                    
+                elif index.column() == 1:
+                    if index.row() < len(self.new_mods_list):
+                        return self.new_mods_list[index.row()].author_name
+                    elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
+                        return self.recommended_mods_list[index.row() - len(self.new_mods_list)].author_name
+                    else:
+                        return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].author_name
+                    
+                elif index.column() == 2:
+                    if index.row() < len(self.new_mods_list):
+                        return self.new_mods_list[index.row()].game_version_human
+                    elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
+                        return self.recommended_mods_list[index.row() - len(self.new_mods_list)].game_version_human
+                    else:
+                        return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].game_version_human
+                    
+                elif index.column() == 3:
+                    if index.row() < len(self.new_mods_list):
+                        return self.new_mods_list[index.row()].download_url
+                    elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
+                        return self.recommended_mods_list[index.row() - len(self.new_mods_list)].download_url
+                    else:
+                        return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].download_url
+                    
+                elif index.column() == 4:
+                    if index.row() < len(self.new_mods_list):
+                        return self.new_mods_list[index.row()].mod_id
+                    elif index.row() < len(self.new_mods_list) + len(self.recommended_mods_list):
+                        return self.recommended_mods_list[index.row() - len(self.new_mods_list)].mod_id
+                    else:
+                        return self.updated_mods_list[index.row() - len(self.new_mods_list) - len(self.recommended_mods_list)].mod_id
         return None
     
     def headerData(self, section, orientation, role):
@@ -97,31 +129,48 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
     
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
-        if column == 0:
-            self.new_mods_list.sort(key=lambda x: x.mod_name_eng)
-            self.recommended_mods_list.sort(key=lambda x: x.mod_name_eng)
-            self.updated_mods_list.sort(key=lambda x: x.mod_name_eng)
-        elif column == 1:
-            self.new_mods_list.sort(key=lambda x: x.author_name)
-            self.recommended_mods_list.sort(key=lambda x: x.author_name)
-            self.updated_mods_list.sort(key=lambda x: x.author_name)
-        elif column == 2:
-            self.new_mods_list.sort(key=lambda x: x.game_version_human)
-            self.recommended_mods_list.sort(key=lambda x: x.game_version_human)
-            self.updated_mods_list.sort(key=lambda x: x.game_version_human)
-        elif column == 3:
-            self.new_mods_list.sort(key=lambda x: x.download_url)
-            self.recommended_mods_list.sort(key=lambda x: x.download_url)
-            self.updated_mods_list.sort(key=lambda x: x.download_url)
-        elif column == 4:
-            self.new_mods_list.sort(key=lambda x: x.mod_id)
-            self.recommended_mods_list.sort(key=lambda x: x.mod_id)
-            self.updated_mods_list.sort(key=lambda x: x.mod_id)
-        
-        if order == QtCore.Qt.DescendingOrder:
-            self.new_mods_list.reverse()
-            self.recommended_mods_list.reverse()
-            self.updated_mods_list.reverse()
+        if self.result_type == "search_results":
+            # For search results, only sort the recommended_mods_list
+            if column == 0:
+                self.recommended_mods_list.sort(key=lambda x: x.mod_name_eng)
+            elif column == 1:
+                self.recommended_mods_list.sort(key=lambda x: x.author_name)
+            elif column == 2:
+                self.recommended_mods_list.sort(key=lambda x: x.game_version_human)
+            elif column == 3:
+                self.recommended_mods_list.sort(key=lambda x: x.download_url)
+            elif column == 4:
+                self.recommended_mods_list.sort(key=lambda x: x.mod_id)
+            
+            if order == QtCore.Qt.DescendingOrder:
+                self.recommended_mods_list.reverse()
+        else:
+            # For start_page results, sort all lists
+            if column == 0:
+                self.new_mods_list.sort(key=lambda x: x.mod_name_eng)
+                self.recommended_mods_list.sort(key=lambda x: x.mod_name_eng)
+                self.updated_mods_list.sort(key=lambda x: x.mod_name_eng)
+            elif column == 1:
+                self.new_mods_list.sort(key=lambda x: x.author_name)
+                self.recommended_mods_list.sort(key=lambda x: x.author_name)
+                self.updated_mods_list.sort(key=lambda x: x.author_name)
+            elif column == 2:
+                self.new_mods_list.sort(key=lambda x: x.game_version_human)
+                self.recommended_mods_list.sort(key=lambda x: x.game_version_human)
+                self.updated_mods_list.sort(key=lambda x: x.game_version_human)
+            elif column == 3:
+                self.new_mods_list.sort(key=lambda x: x.download_url)
+                self.recommended_mods_list.sort(key=lambda x: x.download_url)
+                self.updated_mods_list.sort(key=lambda x: x.download_url)
+            elif column == 4:
+                self.new_mods_list.sort(key=lambda x: x.mod_id)
+                self.recommended_mods_list.sort(key=lambda x: x.mod_id)
+                self.updated_mods_list.sort(key=lambda x: x.mod_id)
+            
+            if order == QtCore.Qt.DescendingOrder:
+                self.new_mods_list.reverse()
+                self.recommended_mods_list.reverse()
+                self.updated_mods_list.reverse()
         self.layoutChanged.emit()
 
 
@@ -129,21 +178,56 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
     def __init__(self,myinvoker:invoker.ModManagerCore, parent=None):
         super(WGModsSearchResultsView, self).__init__(parent)
         
-        search_results = wgmods.WGModsRequest().get_start_page("en", 20,5,1,185)
+        # Try to get search results with error handling
+        try:
+            search_results = wgmods.WGModsRequest().get_start_page("en", 20,20,20,196)
+            if search_results is None:
+                raise Exception("Failed to get search results from wgmods.net")
+        except Exception as e:
+            print(f"Error loading mod browser data: {e}")
+            # Create empty search results as fallback with proper structure
+            empty_json = '{"new": {"count": 0, "results": []}, "recommended": {"count": 0, "results": []}, "updated": {"count": 0, "results": []}}'
+            search_results = wgmods.WGModsSearchResults(empty_json, "start_page")
         self.invoker_ref = myinvoker
         self.mainlayout = QtWidgets.QVBoxLayout(self)
         
-        # Create the search bar
+        # Create the search bar layout
+        self.search_layout = QtWidgets.QHBoxLayout()
         self.search_bar = QtWidgets.QLineEdit(self)
         self.search_bar.setPlaceholderText("Search mods...")
-        self.mainlayout.addWidget(self.search_bar)
+        self.search_bar.setClearButtonEnabled(True)
+        # change text color to black
+        self.search_bar.setStyleSheet("QLineEdit { color: white; }")
+        
+        # Create search button with spyglass icon
+        self.search_button = QtWidgets.QPushButton(self)
+        self.search_button.setToolTip("Search for mods")
+        self.search_button.setMaximumWidth(40)
+        
+        # Set spyglass icon based on platform
+        if sys.platform == "linux":
+            self.search_button.setIcon(QtGui.QIcon.fromTheme("system-search"))
+        else:
+            self.search_button.setText("🔍")  # Unicode spyglass as fallback
+        
+        self.search_layout.addWidget(self.search_bar)
+        self.search_layout.addWidget(self.search_button)
+        self.mainlayout.addLayout(self.search_layout)
         
         # Create the table view
         self.table_view = QtWidgets.QTableView(self)
         self.mainlayout.addWidget(self.table_view)
         
         # Create the model and proxy model
-        self.model = WGModsSearchResultsModel(search_results)
+        try:
+            self.model = WGModsSearchResultsModel(search_results)
+        except Exception as e:
+            print(f"Error creating model: {e}")
+            # Create empty model as fallback with proper structure
+            empty_json = '{"new": {"count": 0, "results": []}, "recommended": {"count": 0, "results": []}, "updated": {"count": 0, "results": []}}'
+            empty_results = wgmods.WGModsSearchResults(empty_json, "start_page")
+            self.model = WGModsSearchResultsModel(empty_results)
+            
         self.proxy_model = QtCore.QSortFilterProxyModel(self)
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
@@ -154,7 +238,7 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         self.table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table_view.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.table_view.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.table_view.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.table_view.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.table_view.setShowGrid(True)
         self.table_view.setAlternatingRowColors(True)
@@ -166,11 +250,30 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         
         # connect signals
         self.search_bar.textChanged.connect(self.filter_mods)
+        self.search_bar.returnPressed.connect(self.perform_search)
+        self.search_button.clicked.connect(self.perform_search)
         self.table_view.clicked.connect(self.table_view_left_click)
 
     
     def filter_mods(self, text):
         self.proxy_model.setFilterFixedString(text)
+
+    @QtCore.Slot()
+    def perform_search(self):
+        search_text = self.search_bar.text().strip()
+        if search_text:
+            print(f"Searching wgmods for: {search_text}")
+            # Perform the search using wgmods.WGModsRequest().get_search_results()
+            search_results = wgmods.WGModsRequest().get_search_results(search_text, "en", 20, 196)
+            if search_results:
+                self.model = WGModsSearchResultsModel(search_results, search_type="search_results")
+                self.proxy_model.setSourceModel(self.model)
+                self.table_view.setModel(self.proxy_model)
+                self.table_view.resizeColumnsToContents()
+                self.table_view.resizeRowsToContents()  
+        else:
+            # Clear filter if search is empty
+            self.proxy_model.setFilterFixedString("")
 
     @QtCore.Slot()
     def table_view_left_click(self):
@@ -183,7 +286,7 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         modid = self.proxy_model.data(self.proxy_model.index(index.row(), 4))
 
         if author == None:
-            author = "n/a"
+            author = "Unknown"
         # create a download dialog window
         download_dialog = DownloadDialog(download_url, mod_name, game_version, author, modid, self.invoker_ref)
         download_dialog.exec()
@@ -201,16 +304,16 @@ class DownloadDialog(QtWidgets.QDialog):
         self.modid = modid
         
         # window stuff
-        self.setWindowTitle(f"Download {self.mod_name} for {self.game_version}")
+        self.setWindowTitle(f"Download mod?")
         self.mainlayout = QtWidgets.QVBoxLayout(self)
-        self.lbl_info = QtWidgets.QLabel("Download information for:")
+        #self.lbl_info = QtWidgets.QLabel("Download information for:")
         self.lbl_name = QtWidgets.QLabel(self.mod_name, wordWrap=True)
         self.lbl_name.setFont(QtGui.QFont("Arial", 14, QtGui.QFont.Bold))
         self.lbl_version = QtWidgets.QLabel("<b>For Game Version</b>: "+self.game_version)
-        self.lbl_wgid = QtWidgets.QLabel("wgmods ID: "+str(self.modid))
-        self.lbl_author = QtWidgets.QLabel("Author: "+self.author)
+        self.lbl_wgid = QtWidgets.QLabel("<b>wgmods ID</b>: "+str(self.modid))
+        self.lbl_author = QtWidgets.QLabel("<b>Author</b>: "+self.author)
         # get the last part of the download URL, the filetype
-        self.lbl_download_url = QtWidgets.QLabel("Download type: "+self.download_url.split(".")[-1], wordWrap=True)
+        self.lbl_download_url = QtWidgets.QLabel("<b>Download type</b>: "+self.download_url.split(".")[-1], wordWrap=True)
         # progressbar for download
         self.progressbar = QtWidgets.QProgressBar(self)
         # set to hidden by default
@@ -221,7 +324,7 @@ class DownloadDialog(QtWidgets.QDialog):
         self.wgmodspage_button = QtWidgets.QPushButton("Show on wgmods.net", self)
 
         # add widgets to layout
-        self.mainlayout.addWidget(self.lbl_info)
+        #self.mainlayout.addWidget(self.lbl_info)
         self.mainlayout.addWidget(self.lbl_name)
         self.mainlayout.addWidget(self.lbl_version)
         self.mainlayout.addWidget(self.lbl_wgid)
@@ -232,8 +335,9 @@ class DownloadDialog(QtWidgets.QDialog):
         self.mainlayout.addWidget(self.wgmodspage_button)
         self.mainlayout.addWidget(self.progressbar)
         # spacing policy
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
-        self.setFixedSize(self.sizeHint())
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.setMinimumWidth(400)  # Set a minimum width for better spacing
+        self.resize(self.sizeHint())
         
         # connect signals
         self.download_button.clicked.connect(self.download_mod)
