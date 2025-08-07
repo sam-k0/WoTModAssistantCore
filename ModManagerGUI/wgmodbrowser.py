@@ -4,6 +4,7 @@ import webbrowser
 import invoker
 import sys, os
 import zipfile
+import shutil
 import xml.etree.ElementTree as ET
 
 # cross platform way to get the download directory for modbrowser
@@ -23,8 +24,16 @@ def get_download_dir():
 
 def clear_download_dir():
     download_dir = get_download_dir()
-    for file in os.listdir(download_dir):
-        os.remove(os.path.join(download_dir, file))
+
+    for entry in os.listdir(download_dir):
+        path = os.path.join(download_dir, entry)
+        try:
+            if os.path.isfile(path) or os.path.islink(path):
+                os.remove(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+        except Exception as e:
+            print(f"Error removing {entry}: {e}")
 
 class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
     def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None, search_type:str="start_page"):
@@ -325,6 +334,10 @@ class DownloadDialog(QtWidgets.QDialog):
         self.game_version = game_version
         self.author = author
         self.modid = modid
+
+        #download things
+        self.download_methods = {"wotmod": self.download_install_wotmod,
+                                 "zip": self.download_install_zip}
         
         # window stuff
         self.setWindowTitle(f"Download mod?")
@@ -367,7 +380,11 @@ class DownloadDialog(QtWidgets.QDialog):
         self.wgmodspage_button.clicked.connect(self.open_wgmods_page)
 
         # set download button to disabled if download is not a .wotmod or .zip file
-        if not self.download_url.endswith(".wotmod"):
+        #if not self.download_url.endswith(".wotmod"):
+        #    self.download_button.setEnabled(False)
+        #    self.download_button.setToolTip("Not available yet.")
+
+        if not self.download_url.split(".")[-1] in self.download_methods.keys():
             self.download_button.setEnabled(False)
             self.download_button.setToolTip("Not available yet.")
     
@@ -380,8 +397,12 @@ class DownloadDialog(QtWidgets.QDialog):
         print("Clearing download directory at ", download_dir)
         clear_download_dir()
 
-        if self.download_url.endswith(".wotmod"):
-            self.download_install_wotmod(download_url=self.download_url)
+        #if self.download_url.endswith(".wotmod"):
+        #    self.download_install_wotmod(download_url=self.download_url)
+        #elif self.download_url.endswith(".zip"):
+        #    self.download_install_zip(download_url=self.download_url)
+
+        self.download_methods[self.download_url.split(".")[-1].replace(".","")](download_url=self.download_url)
 
     @QtCore.Slot()
     def open_wgmods_page(self):
@@ -449,7 +470,22 @@ class DownloadDialog(QtWidgets.QDialog):
         self.invoker_ref.install_mod(localpath)
         # Clean up the download directory
         clear_download_dir()
-        
 
-        
-    
+    def download_install_zip(self, download_url:str):
+        # extract zip file to the download directory and try to install all mods in it
+        localfilename = self.download_url.split("/")[-1]  # get the filename from the URL
+        localpath = os.path.join(get_download_dir(), localfilename)
+        # download the file
+        wgmods.download_from_url(self.download_url, localpath, self.callback_progress)
+
+        # extract the zip file
+        with zipfile.ZipFile(localpath, 'r') as zip_ref:
+            zip_ref.extractall(get_download_dir())
+
+        # install all mods in the extracted directory
+        for root, dirs, files in os.walk(get_download_dir()):
+            for file in files:
+                if file.endswith(".wotmod"):
+                    self.invoker_ref.install_mod(os.path.join(root, file))
+        # Clean up the download directory
+        clear_download_dir()

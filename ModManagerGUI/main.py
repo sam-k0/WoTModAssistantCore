@@ -1,4 +1,3 @@
-import sys 
 from PySide6 import QtCore, QtWidgets, QtGui
 import os
 import sys
@@ -590,6 +589,10 @@ if __name__ == '__main__':
         pass
     elif sys.platform == "win32":
         argadd = ['-platform', 'windows:darkmode=2']
+    elif sys.platform == "darwin":
+        # show error if running on macOS
+        print("This application is not supported on macOS. Please use a Linux or Windows system.")
+        sys.exit(1)
 
     app = QtWidgets.QApplication(sys.argv + argadd)
 
