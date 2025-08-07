@@ -17,8 +17,12 @@ MacOS/darwin support is not planned but not explicitly impossible.
 - Install, Uninstall mods
 - Deactivate, Activate mods
 - Import mods from previous game versions
+- Move mods between different game versions
+- View mod information
 - Browse `wgmods.net` for mods
 - Drag and drop mod installation for `.wotmod` files
+- Version control for mods
+    - Example: If there's a dependency for two mods, and one of them is updated, the other will be automatically updated to the latest compatible version.
 
 ### Screenshots:
 <br>
@@ -34,10 +38,10 @@ MacOS/darwin support is not planned but not explicitly impossible.
 Planned features:
 - [x] wgmods.net compatible mod browser integration:
     - [x] Mod listing
-    - [ ] Mod search by query
+    - [x] Mod search by query
         - [x] Local cache can be searched
     - [x] .wotmod file download and install
-    - [ ] .zip file download and install
+    - [x] .zip file download and install
     - [ ] Modpack support
     - [ ] Mod update checking
 - [ ] `res_mods` directory support
