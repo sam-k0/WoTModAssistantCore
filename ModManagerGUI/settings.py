@@ -132,4 +132,6 @@ class SettingsTabView(QtWidgets.QWidget):
     @QtCore.Slot()
     def on_btn_check_updates_clicked(self):
         # check for updates
+        url = "https://github.com/sam-k0/WoTModAssistantCore/releases/"
+        webbrowser.open(url, 0, True)
         pass
