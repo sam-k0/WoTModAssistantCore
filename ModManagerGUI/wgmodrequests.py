@@ -125,10 +125,9 @@ class WGModsMod:
                 self.mod_name_rus = elem["title"]
 
         self.download_url = ""
-
-        # Get newest version
         newest_version = self.json_dict["versions"][0]
         self.download_url = newest_version["download_url"]
+        self.type = self.download_url.split(".")[-1] # type is the last part of the url, so either .zip, .exe ...
         self.game_version_id = newest_version["game_version"]["id"]
         self.game_version_human= newest_version["game_version"]["version"]
 
