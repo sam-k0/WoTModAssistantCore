@@ -1,3 +1,4 @@
+#type:ignore
 import wgmodrequests as wgmods
 from PySide6 import QtCore, QtWidgets, QtGui
 import webbrowser
@@ -253,6 +254,7 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         self.table_view.resizeColumnsToContents()
         self.table_view.resizeRowsToContents()
         self.table_view.setWordWrap(True)
+        self.table_view.verticalHeader().setVisible(False)
         
         # connect signals
         self.search_bar.textChanged.connect(self.filter_mods)

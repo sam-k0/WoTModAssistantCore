@@ -402,3 +402,4 @@ ModManagerGUI/Core/
 /ModManagerGUI/build
 /ModManagerGUI/dist
 *.spec
+/ModManagerGUI/styles
