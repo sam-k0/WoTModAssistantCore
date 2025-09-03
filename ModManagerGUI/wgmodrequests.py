@@ -198,4 +198,4 @@ class WGModsSearchResults:
 if __name__ =="__main__":
     req = WGModsRequest().get_search_results("Replay", "en", 10, 196)
 
-    print(req.get_search_mods()[0].mod_name_eng)
+    print(req.get_search_mods()[0].mod_name_eng)# type: ignore 

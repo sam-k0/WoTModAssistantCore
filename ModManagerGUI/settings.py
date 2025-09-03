@@ -1,14 +1,15 @@
+#type:ignore
 from PySide6 import QtCore, QtWidgets, QtGui
 import invoker
 import webbrowser
 import sys
-
+from stylesheets import MATERIAL_DARK, MATERIAL_LIGHT
 
 class SettingsTabView(QtWidgets.QWidget):
-    def __init__(self, invoker:invoker.ModManagerCore,parent=None):
+    def __init__(self, invoker:invoker.ModManagerCore, app:QtWidgets.QApplication, parent=None):
         super(SettingsTabView, self).__init__(parent)
         self.invoker_ref = invoker # save ref to invoker
-        
+        self.app = app # save ref to app
         self.mainlayout = QtWidgets.QVBoxLayout()
         
         self.setLayout(self.mainlayout)
@@ -48,6 +49,9 @@ class SettingsTabView(QtWidgets.QWidget):
         self.btn_open_core_directory = QtWidgets.QPushButton("Show core directory")
         self.btn_open_core_directory.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
+        self.btn_change_theme = QtWidgets.QPushButton("Change theme")
+        self.btn_change_theme.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
         self.lbl_credit = QtWidgets.QLabel("Made with ♥ by sam-k0 and contributors.", alignment=QtCore.Qt.AlignCenter)
 
         # hlayout for buttons in a row
@@ -55,8 +59,9 @@ class SettingsTabView(QtWidgets.QWidget):
         self.hlayout.addWidget(self.btn_github, alignment=QtCore.Qt.AlignCenter)
         self.hlayout.addWidget(self.btn_open_mod_directory, alignment=QtCore.Qt.AlignCenter)
         self.hlayout.addWidget(self.btn_check_updates, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_change_theme, alignment=QtCore.Qt.AlignCenter)
         self.hlayout.addWidget(self.btn_open_core_directory, alignment=QtCore.Qt.AlignBottom)
-
+        
 
         self.mainlayout.addWidget(self.lbl_settings_tab_top)
         self.mainlayout.addWidget(self.lbl_detected_game_versions)
@@ -73,6 +78,7 @@ class SettingsTabView(QtWidgets.QWidget):
         self.btn_open_mod_directory.clicked.connect(self.on_btn_open_moddirectory_clicked)
         self.btn_check_updates.clicked.connect(self.on_btn_check_updates_clicked)
         self.btn_open_core_directory.clicked.connect(self.on_btn_open_coredirectory_clicked)
+        self.btn_change_theme.clicked.connect(self.on_btn_change_theme_clicked)
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.setFixedSize(self.sizeHint())  # Makes the window non-resizable and just large enough to fit content
@@ -97,6 +103,13 @@ class SettingsTabView(QtWidgets.QWidget):
         # update aobut label
         msg, err, act = self.invoker_ref.parse_response(self.invoker_ref.get_about())
         self.lbl_about.setText("Version: <b>"+msg+"</b>")
+
+    @QtCore.Slot()
+    def on_btn_change_theme_clicked(self):
+        if self.app.styleSheet() == MATERIAL_DARK:
+            self.app.setStyleSheet(MATERIAL_LIGHT)
+        else:
+            self.app.setStyleSheet(MATERIAL_DARK)
 
     @QtCore.Slot()
     def on_btn_github_clicked(self):

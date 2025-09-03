@@ -1,3 +1,4 @@
+#type: ignore
 from PySide6 import QtCore, QtWidgets, QtGui
 import os
 import sys
@@ -5,7 +6,9 @@ import invoker
 import settings as settingstab
 import wgmodbrowser as wgb
 from pathlib import Path
+from stylesheets import MATERIAL_DARK, MATERIAL_LIGHT
 
+app = None
 
 class ModsTableModel(QtCore.QAbstractTableModel):
     def __init__(self, mods:list, parent=None):
@@ -162,7 +165,7 @@ class MainWindow(QtWidgets.QWidget):
         #region Settings Tab
         self.settings_tab = QtWidgets.QWidget()
         self.settings_layout = QtWidgets.QVBoxLayout(self.settings_tab)
-        self.settings_view = settingstab.SettingsTabView(self.myinvoker)
+        self.settings_view = settingstab.SettingsTabView(self.myinvoker, app)
         self.settings_layout.addWidget(self.settings_view, alignment=QtCore.Qt.AlignCenter)
         #endregion
 
@@ -580,7 +583,7 @@ class ExportPrevModsWindow(QtWidgets.QDialog):
     def export_mods(self):
         folder = self.cbb_mod_folders.currentText()
         response = self.myinvoker.move_all_to_previous_version(folder)
-        msg, err, act = self.myinvoker.parse_response(response)
+        msg, err, act = self.myinvoker.parse_response(response)# type: ignore 
         if err != 0:
             self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")
         self.parent_window.update_action_log(msg, err, act)
@@ -600,7 +603,7 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv + argadd)
 
-    from stylesheets import MATERIAL_DARK
+    
     app.setStyleSheet(MATERIAL_DARK)
 
     widget = MainWindow()

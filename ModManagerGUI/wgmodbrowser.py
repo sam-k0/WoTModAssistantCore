@@ -1,3 +1,4 @@
+#type:ignore
 import wgmodrequests as wgmods
 from PySide6 import QtCore, QtWidgets, QtGui
 import webbrowser
