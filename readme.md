@@ -28,10 +28,16 @@ MacOS/darwin support is not planned but not explicitly impossible.
 <br>
 <div style="display: flex; justify-content: center;">
     <div style="margin: 10px;">
-        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/mainview.png" alt="Main view" width="50%"/>
+        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_main_dark.png" alt="Main view" width="50%"/>
     </div>
     <div style="margin: 10px;">
-        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/browser.png" alt="mod browser" width="50%"/>
+        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_main_light.png" alt="mod browser" width="50%"/>
+    </div>
+    <div style="margin: 10px;">
+        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_browse_dark.png" alt="mod browser" width="50%"/>
+    </div>
+    <div style="margin: 10px;">
+        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_browse_light.png" alt="mod browser" width="50%"/>
     </div>
 </div>
 
@@ -46,7 +52,7 @@ Planned features:
     - [ ] Mod update checking
 - [ ] `res_mods` directory support
 - [ ] Localization / language support
-- [ ] Styling and theming
+- [x] Styling and theming
 - [ ] Autoupdater for ModManagerCore
 ## Installing
 Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.

@@ -49,8 +49,12 @@ class SettingsTabView(QtWidgets.QWidget):
         self.btn_open_core_directory = QtWidgets.QPushButton("Show core directory")
         self.btn_open_core_directory.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
-        self.btn_change_theme = QtWidgets.QPushButton("Change theme")
+        self.label_theme = QtWidgets.QLabel("Select Theme:", alignment=QtCore.Qt.AlignCenter)
+
+        self.btn_change_theme = QtWidgets.QComboBox()
         self.btn_change_theme.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.btn_change_theme.addItem("Light")
+        self.btn_change_theme.addItem("Dark")
 
         self.lbl_credit = QtWidgets.QLabel("Made with ♥ by sam-k0 and contributors.", alignment=QtCore.Qt.AlignCenter)
 
@@ -59,8 +63,13 @@ class SettingsTabView(QtWidgets.QWidget):
         self.hlayout.addWidget(self.btn_github, alignment=QtCore.Qt.AlignCenter)
         self.hlayout.addWidget(self.btn_open_mod_directory, alignment=QtCore.Qt.AlignCenter)
         self.hlayout.addWidget(self.btn_check_updates, alignment=QtCore.Qt.AlignCenter)
-        self.hlayout.addWidget(self.btn_change_theme, alignment=QtCore.Qt.AlignCenter)
-        self.hlayout.addWidget(self.btn_open_core_directory, alignment=QtCore.Qt.AlignBottom)
+        theme_layout = QtWidgets.QHBoxLayout()
+        theme_layout.addWidget(self.label_theme)
+        theme_layout.addWidget(self.btn_change_theme)
+        theme_widget = QtWidgets.QWidget()
+        theme_widget.setLayout(theme_layout)
+        self.hlayout.addWidget(theme_widget, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_open_core_directory, alignment=QtCore.Qt.AlignCenter)
         
 
         self.mainlayout.addWidget(self.lbl_settings_tab_top)
@@ -78,7 +87,7 @@ class SettingsTabView(QtWidgets.QWidget):
         self.btn_open_mod_directory.clicked.connect(self.on_btn_open_moddirectory_clicked)
         self.btn_check_updates.clicked.connect(self.on_btn_check_updates_clicked)
         self.btn_open_core_directory.clicked.connect(self.on_btn_open_coredirectory_clicked)
-        self.btn_change_theme.clicked.connect(self.on_btn_change_theme_clicked)
+        self.btn_change_theme.currentIndexChanged.connect(self.on_theme_change)
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.setFixedSize(self.sizeHint())  # Makes the window non-resizable and just large enough to fit content
@@ -105,11 +114,11 @@ class SettingsTabView(QtWidgets.QWidget):
         self.lbl_about.setText("Version: <b>"+msg+"</b>")
 
     @QtCore.Slot()
-    def on_btn_change_theme_clicked(self):
-        if self.app.styleSheet() == MATERIAL_DARK:
-            self.app.setStyleSheet(MATERIAL_LIGHT)
-        else:
+    def on_theme_change(self):
+        if self.btn_change_theme.currentText() == "Dark":
             self.app.setStyleSheet(MATERIAL_DARK)
+        else:
+            self.app.setStyleSheet(MATERIAL_LIGHT)
 
     @QtCore.Slot()
     def on_btn_github_clicked(self):

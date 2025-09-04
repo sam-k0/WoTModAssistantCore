@@ -14,7 +14,7 @@ class ModsTableModel(QtCore.QAbstractTableModel):
     def __init__(self, mods:list, parent=None):
         super(ModsTableModel, self).__init__(parent)
         self.mods = mods
-        self.header_labels = ["Name", "Mod Version", "Is Enabled?"]
+        self.header_labels = ["Name", "Mod Version", "Enabled"]
 
     def rowCount(self, parent):
         return len(self.mods)
@@ -68,6 +68,7 @@ class MainWindow(QtWidgets.QWidget):
         if not self.myinvoker.get_game_installation_dir():
             self.show_error("It appears you are running this for the first time. Please select the game directory.", "First time setup", QtWidgets.QMessageBox.Information)
             self.setup_game_dir()
+            self.show_error("Information: You can select a theme in the Settings tab. The default theme is Light.", "Info: Theme selection", QtWidgets.QMessageBox.Information)
         else:
             print("Game directory already set to: ", self.myinvoker.get_game_installation_dir())
 
@@ -604,7 +605,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv + argadd)
 
     
-    app.setStyleSheet(MATERIAL_DARK)
+    app.setStyleSheet(MATERIAL_LIGHT)
 
     widget = MainWindow()
     widget.resize(400, 500)

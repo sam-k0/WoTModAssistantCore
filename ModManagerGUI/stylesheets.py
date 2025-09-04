@@ -698,9 +698,17 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QTimeEdit, QDateTimeEdit, QDateEdit, QFontComboBox {
     color: #212121;
     background-color: #FFFFFF;
-    border: 1px solid #DADADA;  /* lighter than button border */
+    border: 1px solid #DADADA;  /* softer than button border */
     border-radius: 4px;
     padding: 4px 6px;
+    selection-background-color: #64b5f6;
+    selection-color: #FFFFFF;
+}
+
+/* Fix for placeholder text in search bars and line edits */
+QLineEdit::placeholder {
+    color: #757575;  /* medium gray, visible on white */
+    font-style: italic; /* optional but recommended */
 }
 
 QPushButton {
