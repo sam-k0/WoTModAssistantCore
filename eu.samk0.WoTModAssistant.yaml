@@ -5,9 +5,14 @@ sdk: org.freedesktop.Sdk
 command: ModManagerGUI
 finish-args:
   - --filesystem=home
+  - --filesystem=xdg-documents
+  - --filesystem=xdg-config  # Read/write to config directories (~/.config)
+  - --filesystem=xdg-cache  # Optional: for any caches
+  
   - --share=network
-  - --socket=session-bus
   - --device=dri
+  - --device=all  # Only if you need full device access (optional)
+  - --socket=session-bus
   - --socket=x11
   - --socket=wayland
 modules:

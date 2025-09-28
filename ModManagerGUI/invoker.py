@@ -150,25 +150,52 @@ class ModManagerCore:
         return out
 
 
-    def invoke(self, args:list, json_output=True):
-        # prepend args list with json_args if json_output is True
+    def invoke(self, args: list, json_output=True):
+        """
+        Run the ModManagerCore executable with the given arguments.
+
+        Args:
+            args (list): List of command-line arguments.
+            json_output (bool): If True, prepend '-o json' to the arguments.
+
+        Returns:
+            str: The standard output of the process as a decoded string.
+        """
+
+        # Prepend JSON output argument if requested
         if json_output:
-            args = ["-o","json"] + args
-        # prepend installation path to args list
+            args = ["-o", "json"] + args
+
+        # Prepend installation path to arguments
         args = [self.installation_path] + args
-        # invoke the ModManagerCore with the args list
         print("Running command: ", args)
+
+        # Configure subprocess
+        popen = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        # Safely read stdout and stderr
+        output, errors = popen.communicate()
+
+        # Decode bytes to string
+        output_str = output.decode("utf-8", errors="replace").strip()
+        errors_str = errors.decode("utf-8", errors="replace").strip()
+
+        # Print outputs for debugging
+        if output_str:
+            print("Core output: ", output_str)
+        if errors_str:
+            print("Core errors: ", errors_str)
+
+        # Raise exception if the core process failed
+        if popen.returncode != 0:
+            raise subprocess.CalledProcessError(popen.returncode, args, output=output_str, stderr=errors_str)
+
+        return output_str
         
-        popen = None
-        if sys.platform == "win32":#hide the console window on Windows
-            popen = subprocess.Popen(args, stdout=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
-        elif sys.platform == "linux":
-            popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-        popen.wait()
-        output = popen.stdout.read()
-        print("Core output: ", output)
-        return output
-    
     def get_config_path(self) -> str:
         """Return the path to the config.json file in a writable location."""
         # Detect Flatpak runtime
