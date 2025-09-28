@@ -27,15 +27,18 @@ modules:
       - type: git
         url: https://github.com/sam-k0/WoTModAssistantCore.git
         branch: flatpak
+      
 
   - name: modmanager-gui
     buildsystem: simple
     build-commands:
-      - pip3 install --no-cache-dir --prefix=/app -r ModManagerGUI/requirements.txt
-      - cd ModManagerGUI
-      - pyinstaller --add-data "/app/Core:Core" --name ModManagerGUI --windowed main.py
-      - install -Dm755 dist/ModManagerGUI/ModManagerGUI /app/bin/ModManagerGUI
+      - pip3 install --no-index --find-links=ModManagerGUI/wheels --prefix=/app -r ModManagerGUI/requirements.txt
+      - cd ModManagerGUI && pyinstaller --add-data "/app/Core:Core" --name ModManagerGUI --windowed main.py
+      - install -Dm755 ModManagerGUI/dist/ModManagerGUI/ModManagerGUI /app/bin/ModManagerGUI
     sources:
       - type: git
         url: https://github.com/sam-k0/WoTModAssistantCore.git
         branch: flatpak
+      - type: dir
+        path: ModManagerGUI/wheels
+        dest: ModManagerGUI/wheels

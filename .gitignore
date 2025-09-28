@@ -404,3 +404,4 @@ ModManagerGUI/Core/
 *.spec
 /ModManagerGUI/styles
 /.flatpak-builder
+/ModManagerGUI/wheels
