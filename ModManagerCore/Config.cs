@@ -3,13 +3,50 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 
 public class Config
-{// config properties
-    public string ?GameInstallDir { get; set; }
-
+{
+    public string? GameInstallDir { get; set; }
 }
 
 public class ConfigIO
 {
+    private static string BaseConfigPath()
+    {
+        // If running inside Flatpak, use a writable config folder
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FLATPAK_ID")))
+        {
+            string configDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), // ~/.config
+                "wotmodassistant");
+            Directory.CreateDirectory(configDir);
+            return configDir;
+        }
+        else
+        {
+            return GetApplicationPath();
+        }
+    }
+
+    private static string BaseExtractPath()
+    {
+        // If running inside Flatpak, use a writable folder
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FLATPAK_ID")))
+        {
+            string extractDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), // ~/.local/share
+                "wotmodassistant",
+                "extract");
+            Directory.CreateDirectory(extractDir);
+            return extractDir;
+        }
+        else
+        {
+            string path = Path.Combine(GetApplicationPath(), "extract");
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            return path;
+        }
+    }
+
     public static string GetApplicationPath()
     {
         var process = Process.GetCurrentProcess();
@@ -19,81 +56,64 @@ public class ConfigIO
         }
         var path = process.MainModule.FileName;
         var dirname = Path.GetDirectoryName(path);
-        if (dirname == null)
-        {
-            return "";
-        }
-        return dirname;
+        return dirname ?? "";
     }
 
     public static void WriteConfig(Config config)
     {
         string json = JsonConvert.SerializeObject(config);
-        File.WriteAllText(GetApplicationPath() +"/config.json", json);
+        string configFile = Path.Combine(BaseConfigPath(), "config.json");
+        File.WriteAllText(configFile, json);
     }
 
     public static Config? ReadConfig()
     {
-        if (!File.Exists(GetApplicationPath()+"/config.json"))
-        {
+        string configFile = Path.Combine(BaseConfigPath(), "config.json");
+        if (!File.Exists(configFile))
             return null;
-        }
-        string json = File.ReadAllText(GetApplicationPath()+"/config.json");
+
+        string json = File.ReadAllText(configFile);
         return JsonConvert.DeserializeObject<Config>(json);
     }
 
     public static string GetConfigPath()
     {
-        return GetApplicationPath()+"/config.json";
-    }  
+        return Path.Combine(BaseConfigPath(), "config.json");
+    }
 
     public static string GetExtractFolder()
     {
-        // make sure the folder exists
-        if (!Directory.Exists(GetApplicationPath()+"/extract"))
-        {
-            Directory.CreateDirectory(GetApplicationPath()+"/extract");
-        }
-
-        return GetApplicationPath()+"/extract";
+        return BaseExtractPath();
     }
 
     public static void ClearExtractFolder()
     {
-        //System.Console.WriteLine("Clearing extract folder at " + GetExtractFolder());
-        string[] subDirectories = Directory.GetDirectories(GetExtractFolder());
+        string extractFolder = GetExtractFolder();
+        if (!Directory.Exists(extractFolder))
+            return;
 
-        // Delete each subdirectory
-        foreach (string subDirectory in subDirectories)
-        {
-            //System.Console.WriteLine("Deleting: " + subDirectory);
-            Directory.Delete(subDirectory, true);
-        }
-        // Delete all files
-        string[] files = Directory.GetFiles(GetExtractFolder());
-        foreach (string file in files)
-        {
-            //System.Console.WriteLine("Deleting: " + file);
+        foreach (string dir in Directory.GetDirectories(extractFolder))
+            Directory.Delete(dir, true);
+
+        foreach (string file in Directory.GetFiles(extractFolder))
             File.Delete(file);
-        }
-
     }
 
     public static string GetModsFolderPath()
     {
-        if(ReadConfig() == null)
-        {
+        var config = ReadConfig();
+        if (config == null)
             throw new Exception("Config file not found when reading mods folder path");
-        }
-        return Path.Combine(ReadConfig().GameInstallDir, "mods");
+
+        return Path.Combine(config.GameInstallDir ?? throw new Exception("GameInstallDir not set"), "mods");
     }
 
     public static string DumpConfig()
     {
-        if (!File.Exists(GetApplicationPath()+"/config.json"))
-        {
+        string configFile = Path.Combine(BaseConfigPath(), "config.json");
+        if (!File.Exists(configFile))
             return "Config file not found";
-        }
-        return File.ReadAllText(GetApplicationPath()+"/config.json");
+
+        return File.ReadAllText(configFile);
     }
 }
