@@ -405,3 +405,4 @@ ModManagerGUI/Core/
 /ModManagerGUI/styles
 /.flatpak-builder
 /ModManagerGUI/wheels
+/repo

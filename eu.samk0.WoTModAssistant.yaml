@@ -8,7 +8,6 @@ finish-args:
   - --share=network
   - --socket=session-bus
   - --device=dri
-
 modules:
   - name: modmanager-core
     buildsystem: simple
@@ -33,7 +32,7 @@ modules:
     buildsystem: simple
     build-commands:
       - pip3 install --no-index --find-links=ModManagerGUI/wheels --prefix=/app -r ModManagerGUI/requirements.txt
-      - cd ModManagerGUI && pyinstaller --add-data "/app/Core:Core" --name ModManagerGUI --windowed main.py
+      - cd ModManagerGUI && pyinstaller --add-data "/app/Core:Core" --name ModManagerGUI --windowed --exclude-module PySide6.QtNetwork main.py
       - install -Dm755 ModManagerGUI/dist/ModManagerGUI/ModManagerGUI /app/bin/ModManagerGUI
     sources:
       - type: git
