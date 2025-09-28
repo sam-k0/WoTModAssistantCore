@@ -32,8 +32,8 @@ modules:
     buildsystem: simple
     build-commands:
       - pip3 install --no-index --find-links=ModManagerGUI/wheels --prefix=/app -r ModManagerGUI/requirements.txt
-      - cd ModManagerGUI && pyinstaller --add-data "/app/Core:Core" --name ModManagerGUI --windowed --exclude-module PySide6.QtNetwork main.py
-      - install -Dm755 ModManagerGUI/dist/ModManagerGUI/ModManagerGUI /app/bin/ModManagerGUI
+      - cp -r ModManagerGUI /app/
+      - install -Dm755 ModManagerGUI/run.sh /app/bin/ModManagerGUI
     sources:
       - type: git
         url: https://github.com/sam-k0/WoTModAssistantCore.git
