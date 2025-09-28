@@ -8,6 +8,8 @@ finish-args:
   - --share=network
   - --socket=session-bus
   - --device=dri
+  - --socket=x11
+  - --socket=wayland
 modules:
   - name: modmanager-core
     buildsystem: simple

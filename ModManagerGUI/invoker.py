@@ -169,27 +169,38 @@ class ModManagerCore:
         print("Core output: ", output)
         return output
     
-    def set_game_installation_dir(self, path:str)->bool:
-        # check if the config file exists in ./Core/config.json
-        if not os.path.isfile(os.path.join(os.path.dirname(self.installation_path), "config.json")):
-            # missing, create it
-            with open(os.path.join(os.path.dirname(self.installation_path), "config.json"), "w") as f:
-                # serialize the json object
-                f.write(json.dumps({"GameInstallDir":path}))
+    def get_config_path(self) -> str:
+        """Return the path to the config.json file in a writable location."""
+        # Detect Flatpak runtime
+        if os.environ.get("FLATPAK_ID"):
+            config_dir = os.path.join(os.path.expanduser("~/.config"), "wotmodassistant")
+        else:
+            config_dir = os.path.join(os.path.dirname(self.installation_path), "Core")
+        
+        os.makedirs(config_dir, exist_ok=True)
+        return os.path.join(config_dir, "config.json")
+
+
+    def set_game_installation_dir(self, path: str) -> bool:
+        config_path = self.get_config_path()
+        
+        if not os.path.isfile(config_path):
+            with open(config_path, "w") as f:
+                json.dump({"GameInstallDir": path}, f)
             return True
         else:
             return False
+
+
+    def get_game_installation_dir(self) -> str:
+        config_path = self.get_config_path()
         
-    def get_game_installation_dir(self)->str:
-        # check if the config file exists in ./Core/config.json
-        if not os.path.isfile(os.path.join(os.path.dirname(self.installation_path), "config.json")):
-            # missing, return None
+        if not os.path.isfile(config_path):
             return None
         else:
-            # read the file and return the GameInstallDir
-            with open(os.path.join(os.path.dirname(self.installation_path), "config.json"), "r") as f:
-                return json.loads(f.read())["GameInstallDir"]
-    
+            with open(config_path, "r") as f:
+                return json.load(f).get("GameInstallDir")
+            
     # move all mods to the newest version folder
     def move_all_to_newest_from_game_version(self, version_folder:str):
         arglist = ["--move-all-new-version", version_folder]
