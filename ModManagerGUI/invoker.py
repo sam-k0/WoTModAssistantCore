@@ -152,49 +152,54 @@ class ModManagerCore:
 
     def invoke(self, args: list, json_output=True):
         """
-        Run the ModManagerCore executable with the given arguments.
-
-        Args:
-            args (list): List of command-line arguments.
-            json_output (bool): If True, prepend '-o json' to the arguments.
-
-        Returns:
-            str: The standard output of the process as a decoded string.
+        Invokes the ModManagerCore executable with the given arguments.
+        Prepends '-o json' if json_output is True.
+        Prepends the installation path as the first argument.
         """
-
-        # Prepend JSON output argument if requested
+        # prepend args list with json_args if json_output is True
         if json_output:
             args = ["-o", "json"] + args
 
-        # Prepend installation path to arguments
-        args = [self.installation_path] + args
-        print("Running command: ", args)
+        # prepend installation path to args list
+        executable_path = self.installation_path
+        print("Executable path:", executable_path)
 
-        # Configure subprocess
-        popen = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        # check if the core executable exists and is executable
+        if not os.path.isfile(executable_path) or not os.access(executable_path, os.X_OK):
+            raise FileNotFoundError(f"Core executable not found or not executable: {executable_path}")
 
-        # Safely read stdout and stderr
-        output, errors = popen.communicate()
+        full_args = [executable_path] + args
+        print("Running command:", full_args)
 
-        # Decode bytes to string
-        output_str = output.decode("utf-8", errors="replace").strip()
-        errors_str = errors.decode("utf-8", errors="replace").strip()
+        try:
+            # use communicate() to avoid hanging
+            if sys.platform == "win32":
+                popen = subprocess.Popen(
+                    full_args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    creationflags=subprocess.CREATE_NO_WINDOW
+                )
+            else:
+                popen = subprocess.Popen(
+                    full_args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
 
-        # Print outputs for debugging
-        if output_str:
-            print("Core output: ", output_str)
-        if errors_str:
-            print("Core errors: ", errors_str)
+            output, err = popen.communicate()
+            retcode = popen.returncode
 
-        # Raise exception if the core process failed
-        if popen.returncode != 0:
-            raise subprocess.CalledProcessError(popen.returncode, args, output=output_str, stderr=errors_str)
+            if retcode != 0:
+                print("Core returned non-zero exit code:", retcode)
+                print("stderr:", err.decode(errors="ignore"))
 
-        return output_str
+            print("Core output:", output)
+            return output
+
+        except Exception as e:
+            print("Error invoking core executable:", e)
+            return b""
         
     def get_config_path(self) -> str:
         """Return the path to the config.json file in a writable location."""
