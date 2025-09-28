@@ -403,3 +403,4 @@ ModManagerGUI/Core/
 /ModManagerGUI/dist
 *.spec
 /ModManagerGUI/styles
+/.flatpak-builder

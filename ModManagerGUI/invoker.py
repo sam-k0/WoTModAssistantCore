@@ -20,18 +20,30 @@ class ModManagerCore:
     def __init__(self):
         # check if the ModManagerCore is in the same
         self.installation_path = self.__expected_core_path()
-
     def __expected_core_path(self):
-        # Should be in *this*/Core/ModManagerCore
-        # The file on Windows is ModManagerCore.exe and on Linux it is ModManagerCore
-        installation_path = ""
-        if sys.platform == "win32":
-            installation_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core","ModManagerCore.exe")
-        elif sys.platform == "linux":
-            installation_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core", "ModManagerCore")
+        import sys
+        import os
+
+        # Determine base path
+        if getattr(sys, "frozen", False):
+            # PyInstaller bundle
+            base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.realpath(__file__)))
+        elif os.environ.get("FLATPAK_ID") is not None:
+            # Running inside Flatpak sandbox
+            base_path = "/app"
         else:
-            raise Exception("Unsupported platform: "+sys.platform)
-        return installation_path
+            # Development mode
+            base_path = os.path.dirname(os.path.realpath(__file__))
+
+        # Determine executable name by platform
+        if sys.platform == "win32":
+            core_name = "ModManagerCore.exe"
+        elif sys.platform == "linux":
+            core_name = "ModManagerCore"
+        else:
+            raise Exception("Unsupported platform: " + sys.platform)
+
+        return os.path.join(base_path, "Core", core_name)
 
     def get_extraction_path(self):
         extract_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core", "extract")

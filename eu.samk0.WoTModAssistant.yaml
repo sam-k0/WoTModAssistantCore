@@ -1,26 +1,28 @@
-app-id: eu.sam-ko.WoTModAssistant
+app-id: eu.samk0.WoTModAssistant
 runtime: org.freedesktop.Platform
 runtime-version: "24.08"
 sdk: org.freedesktop.Sdk
 command: ModManagerGUI
 finish-args:
-  # Allow access to home so user files can be managed
   - --filesystem=home
-  # Likely needed if app talks to network
   - --share=network
-  # Allow spawning sub-processes (the .NET binary)
   - --socket=session-bus
   - --device=dri
 
 modules:
   - name: modmanager-core
     buildsystem: simple
+    build-options:
+      # Make dotnet available in PATH
+      append-path: /usr/lib/sdk/dotnet8/bin
+      env:
+        DOTNET_ROOT: /usr/lib/sdk/dotnet8
+        DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+        DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER: "0"
+      build-args:
+      - --share=network
     build-commands:
-      - dotnet publish ModManagerCore/ModManagerCore.csproj \
-          -c Release \
-          -r linux-x64 \
-          --self-contained true \
-          -o /app/Core
+      - dotnet publish ModManagerCore/ModManagerCore.csproj -c Release -r linux-x64 --self-contained true -o /app/Core
     sources:
       - type: git
         url: https://github.com/sam-k0/WoTModAssistantCore.git
@@ -29,12 +31,9 @@ modules:
   - name: modmanager-gui
     buildsystem: simple
     build-commands:
-      # Install requirements into /app
       - pip3 install --no-cache-dir --prefix=/app -r ModManagerGUI/requirements.txt
-      # Build GUI with PyInstaller, including Core from /app/Core
       - cd ModManagerGUI
       - pyinstaller --add-data "/app/Core:Core" --name ModManagerGUI --windowed main.py
-      # Install final binary into /app/bin
       - install -Dm755 dist/ModManagerGUI/ModManagerGUI /app/bin/ModManagerGUI
     sources:
       - type: git
