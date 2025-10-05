@@ -406,3 +406,4 @@ ModManagerGUI/Core/
 /.flatpak-builder
 /ModManagerGUI/wheels
 /repo
+/ModManagerGUI/wheels
