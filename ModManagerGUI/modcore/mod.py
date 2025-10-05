@@ -3,20 +3,20 @@ import xml.etree.ElementTree as ET
 class ModInfo:
     def __init__(self, 
                  modName="unknown", 
-                 modID="unknown", 
-                 packageID="unknown", 
+                 modID="unknown", #wgmods number
+                 packageID="unknown", # domain name
                  version="0.0", 
                  description="", 
-                 localFileName=None, 
+                 localFileName="unknown", 
                  isEnabled=False,
                  xmlstr=None):
-        self.ModName = modName
-        self.ModID = modID
-        self.PackageID = packageID
-        self.Version = version
-        self.Description = description
-        self.LocalFileName = localFileName
-        self.IsEnabled = isEnabled
+        self.ModName:str = modName
+        self.ModID:str = modID
+        self.PackageID:str = packageID
+        self.Version:str = version
+        self.Description:str = description
+        self.LocalFileName:str = localFileName
+        self.IsEnabled:bool = isEnabled
 
         # Constructor from XML
         if xmlstr is not None:
@@ -24,19 +24,19 @@ class ModInfo:
                 xmlDoc = ET.fromstring(xmlstr)
 
                 if self._xml_key_exists(xmlDoc, "name"):
-                    self.ModName = xmlDoc.findtext("name")
+                    self.ModName = xmlDoc.findtext("name") # type: ignore
 
                 if self._xml_key_exists(xmlDoc, "version"):
-                    self.Version = xmlDoc.findtext("version")
+                    self.Version = xmlDoc.findtext("version") # type: ignore
 
                 if self._xml_key_exists(xmlDoc, "id"):
-                    self.PackageID = xmlDoc.findtext("id")
+                    self.PackageID = xmlDoc.findtext("id") # type: ignore
 
                 if self._xml_key_exists(xmlDoc, "description"):
-                    self.Description = xmlDoc.findtext("description")
+                    self.Description = xmlDoc.findtext("description") # type: ignore
 
                 if self._xml_key_exists(xmlDoc, "wgid"):
-                    self.ModID = xmlDoc.findtext("wgid")
+                    self.ModID = xmlDoc.findtext("wgid") # type: ignore
 
             except ET.ParseError:
                 print("Error parsing xml string!!! Root is missing!")
