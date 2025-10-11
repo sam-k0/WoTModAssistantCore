@@ -5,8 +5,8 @@ import shutil
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from config import Config, ConfigIO
-from mod import ModInfo
+from .config import ConfigIO, Config
+from .mod import ModInfo
 
 # ---- Enums & Output ----
 class ErrorCode(Enum):

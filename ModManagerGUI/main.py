@@ -8,6 +8,9 @@ import wgmodbrowser as wgb
 from pathlib import Path
 from stylesheets import MATERIAL_DARK, MATERIAL_LIGHT
 
+from modcore.manager import ModManager
+from modcore.config import ConfigIO, Config
+
 app = None
 
 class ModsTableModel(QtCore.QAbstractTableModel):
@@ -60,10 +63,7 @@ class MainWindow(QtWidgets.QWidget):
         super().__init__()
 
         self.myinvoker = invoker.ModManagerCore()
-        # check if the Core is in the expected location
-        if not os.path.exists(self.myinvoker.installation_path):
-            self.show_error("Could not find the ModManagerCore executable at "+self.myinvoker.installation_path, "Error: Core not found")
-            sys.exit(1)
+        self.modmanager = None
                 # Setup check
         if not self.myinvoker.get_game_installation_dir():
             self.show_error("It appears you are running this for the first time. Please select the game directory.", "First time setup", QtWidgets.QMessageBox.Information)
@@ -71,6 +71,18 @@ class MainWindow(QtWidgets.QWidget):
             self.show_error("Information: You can select a theme in the Settings tab. The default theme is Light.", "Info: Theme selection", QtWidgets.QMessageBox.Information)
         else:
             print("Game directory already set to: ", self.myinvoker.get_game_installation_dir())
+
+
+        # Setup config
+        try:
+            self.modmanager = ModManager(json_output=True)
+        except Exception as e: # not set up
+            self.show_error(str(e),"Needs setting up config")
+            path = self.setup_game_dir()
+            conf = Config(GameInstallDir=path)
+            ConfigIO.write_config(config=conf)
+            self.modmanager = ModManager(json_output=True)
+
 
         self.setWindowTitle("WoT Mod Manager GUI")
 
@@ -220,7 +232,8 @@ class MainWindow(QtWidgets.QWidget):
     # use this function to avoid updating the action log and possibly overwriting an error message
     def reload_mods(self, updateLog:bool=False):
         try:
-            mods, err, action = self.myinvoker.get_mods_list()
+            resp = self.modmanager.list_mods()
+            mods, err, action = resp.message, resp.errorCode, resp.actionCode
             if err != 0:
                 self.update_action_log(mods, err, action)
                 return
@@ -239,16 +252,12 @@ class MainWindow(QtWidgets.QWidget):
             self.mod_model = ModsTableModel(mods)
             self.mod_table_view.setModel(self.mod_model)
 
-    def setup_game_dir(self):
+    def setup_game_dir(self)->str:
         while True:
             # open file dialog
             folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select game directory")
             if folder:
-                if self.myinvoker.set_game_installation_dir(folder):
-                    self.show_error("Game directory set successfully.", "Success: Game directory set", QtWidgets.QMessageBox.Information)
-                    break
-                else:
-                    self.show_error("Could not set the game directory. Please try again.", "Error: Could not set game directory")
+                return folder
             else:
                 self.show_error("No directory selected. Please select the game directory.", "Error: No directory selected")
 
