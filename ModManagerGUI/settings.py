@@ -103,7 +103,7 @@ class SettingsTabView(QtWidgets.QWidget):
             self.lbl_num_installed_mods.setText(f"Number of installed mods: <b>{len(mods)}</b>")
 
     def update_get_game_versions(self):
-        msg, err, act =self.manager_ref.output_split( self.manager_ref.get_folders("all"))
+        msg, err, act =self.manager_ref.output_split( self.manager_ref.get_folders())
         if err != 0:
             raise Exception(f"Error code {err} in response: {msg}")
         # the msg is a json list of strings

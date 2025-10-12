@@ -7,6 +7,7 @@ from enum import Enum
 from pathlib import Path
 from .config import ConfigIO, Config
 from .mod import ModInfo
+from typing import List, Tuple
 
 # ---- Enums & Output ----
 class ErrorCode(Enum):
@@ -164,19 +165,33 @@ class ModManager:
             return self._log("Mod not found.", ErrorCode.ModNotFound, ActionCode.Toggle)
         return self._log(f"Toggled {package_id}", ErrorCode.Success, ActionCode.Toggle)
 
-    def move_to_newest(self, keyword="all") -> Output:
+    def move_to_newest_from(self, origin_folder:str) -> Output:
         folders = self._version_folders()
         if len(folders) < 2:
             return self._log("No older version to move from.", ErrorCode.FilesystemFailed, ActionCode.MoveToNew)
         newest = folders[-1]
-        previous = folders[-2]
 
-        for mod in Path(previous).glob("*.wotmod*"):
+        for mod in Path(origin_folder).glob("*.wotmod*"):
             dest = Path(newest) / mod.name
             if not dest.exists():
                 shutil.copy2(mod, dest)
 
         return self._log("Moved mods to newest folder.", ErrorCode.Success, ActionCode.MoveToNew)
+
+
+    def move_from_newest_to(self, destination_folder:str)->Output:
+        folders = self._version_folders()
+        if len(folders) < 2:
+            return self._log("No older version to move from.", ErrorCode.FilesystemFailed, ActionCode.MoveToNew)
+        newest = folders[-1]
+
+        for mod in Path(newest).glob("*.wotmod*"):
+            dest = Path(destination_folder) / mod.name
+            if not dest.exists():
+                shutil.copy2(mod, dest)
+
+        return self._log("Moved mods to newest folder.", ErrorCode.Success, ActionCode.MoveToNew)
+
 
     def set_all(self, enable: bool) -> Output:
         mods_dir = self._newest_version_folder()
@@ -202,12 +217,36 @@ class ModManager:
             "license": "MIT"
         }
         return self._log(json.dumps(msg), ErrorCode.Success, ActionCode.Setup)
+    
+    # Parsing
 
     def output_split(self,output:Output):
         return output.message, output.errorCode, output.actionCode
     
     def output_split_json(self, output:Output):
         return json.loads(output.message), output.errorCode, output.actionCode
+    
+    def __parse_mod(self,modstr:str)->ModInfo:
+        jmod = json.loads(modstr)
+        return ModInfo(
+            jmod["ModName"],
+            jmod["ModID"],
+            jmod["PackageID"], 
+            jmod["Version"], 
+            jmod["Description"], 
+            jmod["LocalFileName"], 
+            jmod["IsEnabled"]
+        )
+        
+
+    def parse_mods_list(self, msg:str)->List[ModInfo]:
+
+        message = json.loads(msg)
+        # parse every element in message list to json and create a Mod object
+        mods = []
+        for modstr in message:
+            mods.append(self.__parse_mod(modstr))
+        return mods
 
 if __name__ == "__main__":
     m = ModManager()
