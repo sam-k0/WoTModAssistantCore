@@ -203,6 +203,11 @@ class ModManager:
         }
         return self._log(json.dumps(msg), ErrorCode.Success, ActionCode.Setup)
 
+    def output_split(self,output:Output):
+        return output.message, output.errorCode, output.actionCode
+    
+    def output_split_json(self, output:Output):
+        return json.loads(output.message), output.errorCode, output.actionCode
 
 if __name__ == "__main__":
     m = ModManager()

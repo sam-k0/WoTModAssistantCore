@@ -178,7 +178,7 @@ class MainWindow(QtWidgets.QWidget):
         #region Settings Tab
         self.settings_tab = QtWidgets.QWidget()
         self.settings_layout = QtWidgets.QVBoxLayout(self.settings_tab)
-        self.settings_view = settingstab.SettingsTabView(self.myinvoker, app)
+        self.settings_view = settingstab.SettingsTabView(self.modmanager, app)
         self.settings_layout.addWidget(self.settings_view, alignment=QtCore.Qt.AlignCenter)
         #endregion
 
@@ -232,8 +232,7 @@ class MainWindow(QtWidgets.QWidget):
     # use this function to avoid updating the action log and possibly overwriting an error message
     def reload_mods(self, updateLog:bool=False):
         try:
-            resp = self.modmanager.list_mods()
-            mods, err, action = resp.message, resp.errorCode, resp.actionCode
+            mods, err, action = self.modmanager.output_split_json(self.modmanager.list_mods())
             if err != 0:
                 self.update_action_log(mods, err, action)
                 return
