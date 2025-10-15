@@ -9,6 +9,10 @@ from .config import ConfigIO, Config
 from .mod import ModInfo
 from typing import List, Tuple
 
+
+VERSION = "2025.10.15"
+
+
 # ---- Enums & Output ----
 class ErrorCode(Enum):
     Success = 0

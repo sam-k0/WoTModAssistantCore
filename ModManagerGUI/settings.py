@@ -1,6 +1,7 @@
 #type:ignore
 from PySide6 import QtCore, QtWidgets, QtGui
 import modcore.manager
+from modcore.manager import VERSION
 import webbrowser
 import sys
 import json
@@ -29,7 +30,7 @@ class SettingsTabView(QtWidgets.QWidget):
 
         self.lbl_num_installed_mods = QtWidgets.QLabel("Number of installed mods: 0", alignment=QtCore.Qt.AlignLeft)
 
-        self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: EMBEDDED", alignment=QtCore.Qt.AlignLeft)
+        self.lbl_installdir = QtWidgets.QLabel("ModAssistantCore directory set to: pythonEmbedded", alignment=QtCore.Qt.AlignLeft)
         # horizontal line
         self.line = QtWidgets.QFrame()
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
@@ -47,8 +48,8 @@ class SettingsTabView(QtWidgets.QWidget):
         self.btn_check_updates = QtWidgets.QPushButton("Check for updates")
         self.btn_check_updates.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
-        self.btn_open_core_directory = QtWidgets.QPushButton("Show core directory")
-        self.btn_open_core_directory.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.btn_open_issue_tracker = QtWidgets.QPushButton("Report Bug")
+        self.btn_open_issue_tracker.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
         self.label_theme = QtWidgets.QLabel("Select Theme:", alignment=QtCore.Qt.AlignCenter)
 
@@ -70,7 +71,7 @@ class SettingsTabView(QtWidgets.QWidget):
         theme_widget = QtWidgets.QWidget()
         theme_widget.setLayout(theme_layout)
         self.hlayout.addWidget(theme_widget, alignment=QtCore.Qt.AlignCenter)
-        self.hlayout.addWidget(self.btn_open_core_directory, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_open_issue_tracker, alignment=QtCore.Qt.AlignCenter)
         
 
         self.mainlayout.addWidget(self.lbl_settings_tab_top)
@@ -87,7 +88,7 @@ class SettingsTabView(QtWidgets.QWidget):
         self.btn_github.clicked.connect(self.on_btn_github_clicked)
         self.btn_open_mod_directory.clicked.connect(self.on_btn_open_moddirectory_clicked)
         self.btn_check_updates.clicked.connect(self.on_btn_check_updates_clicked)
-        self.btn_open_core_directory.clicked.connect(self.on_btn_open_coredirectory_clicked)
+        self.btn_open_issue_tracker.clicked.connect(self.on_btn_show_issue_tracker)
         self.btn_change_theme.currentIndexChanged.connect(self.on_theme_change)
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -120,7 +121,7 @@ class SettingsTabView(QtWidgets.QWidget):
         self.lbl_moddir.setText(f"Managing mods from: <b>{self.manager_ref._newest_version_folder()}</b>")
         #TODO: update aobut label
         #msg, err, act = self.manager_ref.parse_response(self.manager_ref.get_about())
-        msg = "TODO ver"
+        msg = VERSION
         self.lbl_about.setText("Version: <b>"+msg+"</b>")
 
     @QtCore.Slot()
@@ -148,7 +149,9 @@ class SettingsTabView(QtWidgets.QWidget):
             webbrowser.open(path,0, True)
 
     @QtCore.Slot()
-    def on_btn_open_coredirectory_clicked(self):
+    def on_btn_show_issue_tracker(self):
+        url = "https://github.com/sam-k0/WoTModAssistantCore/issues"
+        webbrowser.open(url, 0, True)
         pass
 
     @QtCore.Slot()

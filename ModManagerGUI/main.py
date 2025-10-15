@@ -3,13 +3,12 @@ from PySide6 import QtCore, QtWidgets, QtGui
 import os
 import sys
 
-
 import settings as settingstab
 import wgmodbrowser as wgb
 from pathlib import Path
 from stylesheets import MATERIAL_DARK, MATERIAL_LIGHT
 
-from modcore.manager import ModManager
+from modcore.manager import ModManager, VERSION
 from modcore.config import ConfigIO, Config
 from modcore.mod import ModInfo
 
@@ -76,7 +75,7 @@ class MainWindow(QtWidgets.QWidget):
             self.modmanager = ModManager(json_output=True)
 
 
-        self.setWindowTitle("WoT Mod Manager GUI")
+        self.setWindowTitle(f"WoT Mod Manager {VERSION}")
 
         # Tabs
         self.tabs = QtWidgets.QTabWidget(self)
@@ -437,7 +436,7 @@ class ModInfoWindow(QtWidgets.QDialog):
             print("Uninstalling mod: ", self.mod.PackageID)
             resp = self.modmanager.uninstall_mod(self.mod.PackageID)
             msg, err, act = self.modmanager.output_split(resp)
-            self.parent_window.update_action_log(resp, err.value, act.value)
+            self.parent_window.update_action_log(msg, err.value, act.value)
 
             self.close()
         pass
