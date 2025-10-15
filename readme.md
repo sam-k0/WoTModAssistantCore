@@ -27,17 +27,17 @@ MacOS/darwin support is not planned but not explicitly impossible.
 ### Screenshots:
 <br>
 <div style="display: flex; justify-content: center;">
-    <div style="margin: 10px;">
-        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_main_dark.png" alt="Main view" width="50%"/>
+    <div style="margin: 5px;">
+        <img src="res/screenshot_main_dark.png" alt="Main view" width="80%"/>
     </div>
-    <div style="margin: 10px;">
-        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_main_light.png" alt="mod browser" width="50%"/>
+    <div style="margin: 5px;">
+        <img src="res/screenshot_main_light.png" alt="mod browser" width="80%"/>
     </div>
-    <div style="margin: 10px;">
-        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_browse_dark.png" alt="mod browser" width="50%"/>
+    <div style="margin: 5px;">
+        <img src="res/screenshot_browse_dark.png" alt="mod browser" width="80%"/>
     </div>
-    <div style="margin: 10px;">
-        <img src="https://github.com/sam-k0/WoTModAssistantCore/blob/master/res/screenshot_browse_light.png" alt="mod browser" width="50%"/>
+    <div style="margin: 5px;">
+        <img src="res/screenshot_browse_light.png" alt="mod browser" width="80%">
     </div>
 </div>
 
@@ -53,7 +53,13 @@ Planned features:
 - [ ] `res_mods` directory support
 - [ ] Localization / language support
 - [x] Styling and theming
-- [ ] Autoupdater for ModManagerCore
+
+
+# Instructions below are OUTDATED!
+As I am changing the whole project structure and code, there is no working release at the moment.
+
+There will be a windows executable and linux flatpak or AppImage release.
+
 ## Installing
 Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.
 > [!TIP]
