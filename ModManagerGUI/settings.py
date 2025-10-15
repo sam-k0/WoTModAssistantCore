@@ -1,6 +1,6 @@
 #type:ignore
 from PySide6 import QtCore, QtWidgets, QtGui
-import .modcore.manager
+import modcore.manager
 import webbrowser
 import sys
 import json
@@ -97,14 +97,14 @@ class SettingsTabView(QtWidgets.QWidget):
     def update_get_installed_mods(self):
         msg, err, ac = self.manager_ref.output_split(self.manager_ref.list_mods())  
         mods = json.loads(msg)
-        if err != 0:
+        if err.value != 0:
             self.lbl_num_installed_mods.setText(f"Error code {err} in response: {mods}")
         else:
             self.lbl_num_installed_mods.setText(f"Number of installed mods: <b>{len(mods)}</b>")
 
     def update_get_game_versions(self):
         msg, err, act =self.manager_ref.output_split( self.manager_ref.get_folders())
-        if err != 0:
+        if err.value != 0:
             raise Exception(f"Error code {err} in response: {msg}")
         # the msg is a json list of strings
         versions = json.loads(msg)
@@ -114,9 +114,13 @@ class SettingsTabView(QtWidgets.QWidget):
         # set the current index to the newest version
         self.cbb_detected_game_versions.setCurrentIndex(len(versions)-1)
         # update moddir label
-        self.lbl_moddir.setText(f"Managing mods from: <b>{self.manager_ref.get_newest_mod_folder()}</b>")
-        # update aobut label
-        msg, err, act = self.manager_ref.parse_response(self.manager_ref.get_about())
+
+
+
+        self.lbl_moddir.setText(f"Managing mods from: <b>{self.manager_ref._newest_version_folder()}</b>")
+        #TODO: update aobut label
+        #msg, err, act = self.manager_ref.parse_response(self.manager_ref.get_about())
+        msg = "TODO ver"
         self.lbl_about.setText("Version: <b>"+msg+"</b>")
 
     @QtCore.Slot()
@@ -145,17 +149,7 @@ class SettingsTabView(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def on_btn_open_coredirectory_clicked(self):
-        # cross platform way to open a file explorer is using the webbrowser.
-        #cut off the last part of the path as it points to the executable
-
-        split =  self.manager_ref.installation_path.split("/")
-        path = "file://"+"/".join(split[:-1])
-
-
-        if sys.platform == "win32":
-            webbrowser.open(path,0, True)
-        elif sys.platform == "linux":
-            webbrowser.open(path,0, True)
+        pass
 
     @QtCore.Slot()
     def on_btn_check_updates_clicked(self):

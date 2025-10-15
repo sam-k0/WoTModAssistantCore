@@ -225,8 +225,8 @@ class MainWindow(QtWidgets.QWidget):
     def reload_mods(self, updateLog:bool=False):
         try:
             resp, err, action = self.modmanager.output_split(self.modmanager.list_mods())
-            if err != 0:
-                self.update_action_log(resp, err, action)
+            if err.value != 0:
+                self.update_action_log(resp, err.value, action.value)
                 return
             
             mods_list = self.modmanager.parse_mods_list(resp)
@@ -235,7 +235,7 @@ class MainWindow(QtWidgets.QWidget):
             self.mod_table_view.setModel(self.mod_model)
 
             if updateLog:
-                self.update_action_log("Successfully refreshed mods", err, action)
+                self.update_action_log("Successfully refreshed mods", err.value, action.value)
         except Exception as e:
             # Show qt popup message box
             self.show_error("Could not refresh mods: "+str(e), "Error: Could not refresh mods")
@@ -262,7 +262,7 @@ class MainWindow(QtWidgets.QWidget):
             try:
                 out = self.modmanager.install_mod(filename)
                 resp, err, act = self.modmanager.output_split(out)
-                self.update_action_log(resp, err, act)
+                self.update_action_log(resp, err.value, act.value)
                 self.reload_mods()
             except Exception as e:
                 self.show_error("Could not install mod: "+str(e), "Error: Could not install mod")
@@ -309,7 +309,7 @@ class MainWindow(QtWidgets.QWidget):
         print("Toggling mod: ", mod.ModName)
         out = self.modmanager.toggle_mod(mod.PackageID)
         resp, err, act = self.modmanager.output_split(out)
-        self.update_action_log(resp, err, act)
+        self.update_action_log(resp, err.value, act.value)
         # refresh the mod list
         self.reload_mods()
         
@@ -317,14 +317,14 @@ class MainWindow(QtWidgets.QWidget):
     def disable_all(self):
         out = self.modmanager.set_all(False)
         resp, err, act = self.modmanager.output_split(out)
-        self.update_action_log(resp, err, act)
+        self.update_action_log(resp, err.value, act.value)
         self.reload_mods()
     
     @QtCore.Slot()
     def enable_all(self):
         out = self.modmanager.set_all(True)
         resp, err, act = self.modmanager.output_split(out)
-        self.update_action_log(resp, err, act)
+        self.update_action_log(resp, err.value, act.value)
         self.reload_mods()
 
     @QtCore.Slot()
@@ -359,9 +359,9 @@ class MainWindow(QtWidgets.QWidget):
                 if file_path.endswith(".wotmod"):
                     out = self.modmanager.install_mod(file_path)
                     resp, err, act = self.modmanager.output_split(out)
-                    if err != 0:
+                    if err.value != 0:
                         self.show_error(resp, "Error: Could not install mod")
-                    self.update_action_log(resp, err, act)
+                    self.update_action_log(resp, err.value, act.value)
                     self.reload_mods()
                 else:
                     self.show_error("Only .wotmod files are supported yet", "Error: Unsupported file type")
@@ -388,14 +388,14 @@ class ModInfoWindow(QtWidgets.QDialog):
         self.modmanager:ModManager = parent_window.modmanager
         self.parent_window:MainWindow = parent_window
 
-        self.setWindowTitle("Mod Info - "+mod.name)
+        self.setWindowTitle("Mod Info - "+mod.ModName)
         self.mainlayout = QtWidgets.QVBoxLayout(self)
-        self.lbl_name = QtWidgets.QLabel(mod.name)
+        self.lbl_name = QtWidgets.QLabel(mod.ModName)
         self.lbl_name.setFont(QtGui.QFont("Arial", 14, QtGui.QFont.Bold))
-        self.lbl_version = QtWidgets.QLabel("Version: "+mod.version)
-        self.lbl_pckid = QtWidgets.QLabel("Package ID: "+mod.pckid)
-        self.lbl_wgid = QtWidgets.QLabel("wgmods ID: "+mod.wgid)
-        self.lbl_desc = QtWidgets.QLabel(mod.desc, wordWrap=True)
+        self.lbl_version = QtWidgets.QLabel("Version: "+mod.Version)
+        self.lbl_pckid = QtWidgets.QLabel("Package ID: "+mod.PackageID)
+        self.lbl_wgid = QtWidgets.QLabel("wgmods ID: "+mod.ModID)
+        self.lbl_desc = QtWidgets.QLabel(mod.Description, wordWrap=True)
         # buttons for uninstalling and toggling
         self.btn_uninstall = QtWidgets.QPushButton("Uninstall")
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
@@ -437,7 +437,7 @@ class ModInfoWindow(QtWidgets.QDialog):
             print("Uninstalling mod: ", self.mod.PackageID)
             resp = self.modmanager.uninstall_mod(self.mod.PackageID)
             msg, err, act = self.modmanager.output_split(resp)
-            self.parent_window.update_action_log(msg, err, act)
+            self.parent_window.update_action_log(resp, err.value, act.value)
 
             self.close()
         pass
@@ -446,7 +446,7 @@ class ModInfoWindow(QtWidgets.QDialog):
     def toggle_mod(self):
         out = self.modmanager.toggle_mod(self.mod.PackageID)
         resp, err, act = self.modmanager.output_split(out)
-        self.parent_window.update_action_log(resp, err, act)
+        self.parent_window.update_action_log(resp, err.value, act.value)
         self.parent_window.reload_mods()
 
 
@@ -522,9 +522,9 @@ class ImportPrevModsWindow(QtWidgets.QDialog):
         folder = self.cbb_mod_folders.currentText()
         response = self.modmanager.move_to_newest_from(folder)
         msg, err, act = self.modmanager.output_split(response)
-        if err != 0:
+        if err.value != 0:
             self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")
-        self.parent_window.update_action_log(msg, err, act)
+        self.parent_window.update_action_log(resp, err.value, act.value)
         self.close()
 
 # Window popup to export mods to a previous version
@@ -588,9 +588,9 @@ class ExportPrevModsWindow(QtWidgets.QDialog):
         folder = self.cbb_mod_folders.currentText()
         response = self.modmanager.move_from_newest_to(folder)
         msg, err, act = self.modmanager.output_split(response)
-        if err != 0:
+        if err.value != 0:
             self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")
-        self.parent_window.update_action_log(msg, err, act)
+        self.parent_window.update_action_log(resp, err.value, act.value)
         self.close()
 
 

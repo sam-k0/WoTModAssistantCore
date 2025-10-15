@@ -404,3 +404,4 @@ ModManagerGUI/Core/
 *.spec
 /ModManagerGUI/styles
 /ModManagerGUI/wheels
+ModManagerGUI/modcore/config.json
