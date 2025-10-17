@@ -129,13 +129,31 @@ class ModManager:
             mod.IsEnabled = enabled
             mods.append(mod)
         return mods
+    
+    def _get_mod_meta(self, pth:str)->ModInfo:
+        # Get a modInfo from a path to wotmod or wotmod disabled file
+        enabled = not pth.endswith(".disabled")
+        mod = self._extract_meta(str(pth))
+        mod.IsEnabled = enabled
+        return mod
 
     def install_mod(self, filename: str) -> Output:
         mods_dir = self._newest_version_folder()
         if not os.path.exists(filename):
             return self._log("Mod file not found.", ErrorCode.ModNotFound, ActionCode.Install)
         try:
-            shutil.copy2(filename, mods_dir)
+            # check first if the mod is already installed in a newer version
+
+            installed_mods = self._get_installed_mods(self._newest_version_folder())
+            pending_mod = self._get_mod_meta(filename)
+            canInstall = True
+            for mod in installed_mods:
+                # there is a mod with same package id and same or higher ver
+                if mod.PackageID == pending_mod.PackageID and mod.Version >= pending_mod.Version:
+                    canInstall = False
+                    return self._log(f"Mod {pending_mod.PackageID} is already installed with a newer version.", ErrorCode.Success, ActionCode.Install)
+            if canInstall:
+                shutil.copy2(filename, mods_dir)
         except Exception as e:
             return self._log(str(e), ErrorCode.FilesystemFailed, ActionCode.Install)
         return self._log(f"Installed {os.path.basename(filename)}", ErrorCode.Success, ActionCode.Install)
