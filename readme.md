@@ -54,8 +54,29 @@ Planned features:
 - [ ] Localization / language support
 - [x] Styling and theming
 
+### Install
+To install, the recommended way is to use the flatpak.
+As I have not yet submitted the app to flathub, you will need to install it manually for now.
 
-# Instructions below are OUTDATED!
+#### Linux Fedora
+- `sudo dnf install flatpak flatpak-builder git python3-pip`
+
+
+#### Linux Debian/Ubuntu
+- `sudo apt install flatpak flatpak-builder git python3-pip`
+
+Then, continue with the following steps:
+
+```bash
+git clone https://github.com/sam-k0/WoTModAssistantCore.git
+cd WoTModAssistantCore
+git checkout flatpak
+mkdir -p ModManagerGUI/wheels
+pip wheel --wheel-dir=ModManagerGUI/wheels -r ModManagerGUI/requirements.txt
+flatpak-builder --user --install --force-clean build-dir eu.samk0.WoTModAssistant.yaml
+```
+
+# Instructions below are for legacy version found in the releases tab.
 As I am changing the whole project structure and code, there is no working release at the moment.
 
 There will be a windows executable and linux flatpak or AppImage release.
