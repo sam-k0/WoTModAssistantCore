@@ -1,5 +1,4 @@
 app-id: eu.samk0.WoTModAssistant
-app-version: "2025.10.15"
 runtime: org.freedesktop.Platform
 runtime-version: "24.08"
 sdk: org.freedesktop.Sdk
