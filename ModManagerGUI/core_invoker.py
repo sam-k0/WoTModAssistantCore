@@ -3,6 +3,12 @@ import sys
 import os
 import json
 
+"""
+    Inference to ModManagerCore, now deprecated in favor of a pure-python implementation.
+    Last shared version capabilities with python modmanager 2025.10.15
+"""
+
+
 class Mod: # mirrors the Mod class in ModManagerCore
     def __init__(self, name:str, wgid:str, pckid:str, version:str, desc:str, localfilename:str, isenabled:bool):
         self.name = name

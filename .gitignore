@@ -407,3 +407,4 @@ ModManagerGUI/Core/
 /ModManagerGUI/wheels
 /repo
 /ModManagerGUI/wheels
+ModManagerGUI/modcore/config.json

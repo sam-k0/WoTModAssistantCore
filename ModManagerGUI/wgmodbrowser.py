@@ -2,11 +2,13 @@
 import wgmodrequests as wgmods
 from PySide6 import QtCore, QtWidgets, QtGui
 import webbrowser
-import invoker
 import sys, os
 import zipfile
 import shutil
 import xml.etree.ElementTree as ET
+
+from modcore.manager import ModManager
+from modcore.config import ConfigIO
 
 # cross platform way to get the download directory for modbrowser
 # creates the directory if it doesn't exist
@@ -185,10 +187,10 @@ class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
 
 
 class WGModsSearchResultsView(QtWidgets.QWidget):
-    def __init__(self,myinvoker:invoker.ModManagerCore, parent=None):
+    def __init__(self,manager:ModManager, parent=None):
         super(WGModsSearchResultsView, self).__init__(parent)
         
-        self.invoker_ref = myinvoker
+        self.modmanager = manager
         self.mainlayout = QtWidgets.QVBoxLayout(self)
         
         # Create the search bar layout
@@ -322,15 +324,15 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         if author == None:
             author = "Unknown"
         # create a download dialog window
-        download_dialog = DownloadDialog(download_url, mod_name, game_version, author, modid, self.invoker_ref)
+        download_dialog = DownloadDialog(download_url, mod_name, game_version, author, modid, self.modmanager)
         download_dialog.exec()
 
 
 # Download dialog window class
 class DownloadDialog(QtWidgets.QDialog):
-    def __init__(self, download_url:str, mod_name:str, game_version:str, author:str, modid:int, myinvoker:invoker.ModManagerCore,parent=None):
+    def __init__(self, download_url:str, mod_name:str, game_version:str, author:str, modid:int, manager:ModManager,parent=None):
         super(DownloadDialog, self).__init__(parent)
-        self.invoker_ref = myinvoker
+        self.modmanager = manager
         self.download_url = download_url
         self.mod_name = mod_name
         self.game_version = game_version
@@ -413,8 +415,8 @@ class DownloadDialog(QtWidgets.QDialog):
 
     # Unpacks a .wotmod file, injects the mod ID into the meta.xml file, and repacks the .wotmod file
     def inject_wgmodid_to_meta(self, localpath:str):
-        print("Extracting mod to ", self.invoker_ref.get_extraction_path())
-        target = self.invoker_ref.get_extraction_path() + os.sep + self.mod_name
+        print("Extracting mod to ", ConfigIO.get_extract_folder())
+        target = ConfigIO.get_extract_folder() + os.sep + self.mod_name
         with zipfile.ZipFile(localpath, 'r') as zip_ref:
             zip_ref.extractall(target)
         
@@ -469,7 +471,7 @@ class DownloadDialog(QtWidgets.QDialog):
         self.inject_wgmodid_to_meta(localpath)
 
         # install the mod
-        self.invoker_ref.install_mod(localpath)
+        self.modmanager.install_mod(localpath)
         # Clean up the download directory
         clear_download_dir()
 
@@ -488,6 +490,6 @@ class DownloadDialog(QtWidgets.QDialog):
         for root, dirs, files in os.walk(get_download_dir()):
             for file in files:
                 if file.endswith(".wotmod"):
-                    self.invoker_ref.install_mod(os.path.join(root, file))
+                    self.modmanager.install_mod(os.path.join(root, file))
         # Clean up the download directory
         clear_download_dir()
