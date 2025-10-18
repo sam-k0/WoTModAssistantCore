@@ -9,6 +9,10 @@ finish-args:
   - --filesystem=xdg-config  # Read/write to config directories (~/.config)
   - --filesystem=xdg-cache  # Optional: for any caches
   
+  # Persist user data between Flatpak updates
+  - --persist=~/.config/wotmodassistant
+  - --persist=~/.cache/wotmodassistant
+
   - --share=network
   - --device=dri
   - --device=all  # Only if you need full device access (optional)
@@ -16,25 +20,6 @@ finish-args:
   - --socket=x11
   - --socket=wayland
 modules:
-  - name: modmanager-core
-    buildsystem: simple
-    build-options:
-      # Make dotnet available in PATH
-      append-path: /usr/lib/sdk/dotnet8/bin
-      env:
-        DOTNET_ROOT: /usr/lib/sdk/dotnet8
-        DOTNET_CLI_TELEMETRY_OPTOUT: "1"
-        DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER: "0"
-      build-args:
-      - --share=network
-    build-commands:
-      - dotnet publish ModManagerCore/ModManagerCore.csproj -c Release -r linux-x64 --self-contained true -o /app/Core
-    sources:
-      - type: git
-        url: https://github.com/sam-k0/WoTModAssistantCore.git
-        branch: flatpak
-      
-
   - name: modmanager-gui
     buildsystem: simple
     build-commands:

@@ -15,7 +15,6 @@ class ConfigIO:
     def get_application_path() -> str:
         """
         Return the directory where the current process executable/script lives.
-        Equivalent to C# Process.MainModule.FileName
         """
         if getattr(sys, "frozen", False):  # PyInstaller bundled
             return os.path.dirname(sys.executable)
@@ -23,13 +22,24 @@ class ConfigIO:
             return os.path.dirname(os.path.realpath(__file__))
 
     @staticmethod
+    def get_config_dir() -> str:
+        """Return a writable config directory."""
+        # Inside Flatpak/AppImage: use user config
+        base = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+        cfg_dir = os.path.join(base, "wotmodassistant")
+        os.makedirs(cfg_dir, exist_ok=True)
+        return cfg_dir
+
+    @staticmethod
     def get_config_path() -> str:
-        return os.path.join(ConfigIO.get_application_path(), "config.json")
+        """Full path to config.json in writable location."""
+        return os.path.join(ConfigIO.get_config_dir(), "config.json")
 
     @staticmethod
     def write_config(config: Config):
         path = ConfigIO.get_config_path()
-        with open(path, "w") as f:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(config.__dict__, f, indent=4)
 
     @staticmethod
@@ -37,13 +47,14 @@ class ConfigIO:
         path = ConfigIO.get_config_path()
         if not os.path.isfile(path):
             return None
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return Config(**data)
-
+    
     @staticmethod
     def get_extract_folder() -> str:
-        extract_dir = os.path.join(ConfigIO.get_application_path(), "extract")
+        base_cache = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
+        extract_dir = os.path.join(base_cache, "wotmodassistant", "extract")
         os.makedirs(extract_dir, exist_ok=True)
         return extract_dir
 
