@@ -8,7 +8,7 @@ from pathlib import Path
 from .config import ConfigIO, Config
 from .mod import ModInfo
 from typing import List, Tuple
-
+from PySide6 import QtCore, QtWidgets, QtGui
 
 VERSION = "2025.10.15"
 
@@ -143,7 +143,6 @@ class ModManager:
             return self._log("Mod file not found.", ErrorCode.ModNotFound, ActionCode.Install)
         try:
             # check first if the mod is already installed in a newer version
-
             installed_mods = self._get_installed_mods(self._newest_version_folder())
             pending_mod = self._get_mod_meta(filename)
             canInstall = True
@@ -152,6 +151,21 @@ class ModManager:
                 if mod.PackageID == pending_mod.PackageID and mod.Version >= pending_mod.Version:
                     canInstall = False
                     return self._log(f"Mod {pending_mod.PackageID} is already installed with a newer version.", ErrorCode.Success, ActionCode.Install)
+                # there is a mod with same package id and lower ver
+                if mod.PackageID == pending_mod.PackageID and mod.Version <= pending_mod.Version:
+                    # ask user if they want to uninstall the old version
+                    msg = QtWidgets.QMessageBox()
+                    msg.setIcon(QtWidgets.QMessageBox.Question) #type: ignore
+                    msg.setText(f"Mod {pending_mod.PackageID} is already installed with version {mod.Version}\nYou are about to install {pending_mod.Version}\nDo you want to uninstall the old version?")
+                    msg.setWindowTitle("Version upgrade: "+mod.PackageID)
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) #type: ignore
+                    msg.setDefaultButton(QtWidgets.QMessageBox.Yes) #type: ignore
+                    ret = msg.exec()
+
+                    if ret == QtWidgets.QMessageBox.Yes:  #type:ignore
+                        msg, err, act = self.output_split(self.uninstall_mod(mod.PackageID)) 
+
+
             if canInstall:
                 shutil.copy2(filename, mods_dir)
         except Exception as e:

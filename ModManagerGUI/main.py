@@ -115,6 +115,9 @@ class MainWindow(QtWidgets.QWidget):
         self.btn_refresh = QtWidgets.QPushButton("Refresh mods")
         self.btn_refresh.setToolTip("Refresh the list of installed mods")
 
+        self.btn_inspect = QtWidgets.QPushButton("Mod details...")
+        self.btn_inspect.setToolTip("Manage the selected mod")
+
         self.btn_toggle = QtWidgets.QPushButton("Toggle (Active/Inactive)")
         self.btn_toggle.setToolTip("Toggle the selected mod between active and inactive")
 
@@ -141,6 +144,7 @@ class MainWindow(QtWidgets.QWidget):
             self.btn_install.setIcon(QtGui.QIcon.fromTheme("list-add"))
             self.btn_moveall.setIcon(QtGui.QIcon.fromTheme("go-next"))
             self.btn_moveall_to_prev.setIcon(QtGui.QIcon.fromTheme("go-previous"))
+            self.btn_inspect.setIcon(QtGui.QIcon.fromTheme("document-open"))
 
         # Set up main layout
         self.mainlayout.addSpacing(10)
@@ -149,15 +153,22 @@ class MainWindow(QtWidgets.QWidget):
         self.mainlayout.addWidget(self.lbl_details)
         self.mainlayout.addWidget(self.lbl_description)
         self.mainlayout.addStretch()
-        self.mainlayout.addWidget(self.btn_refresh)
+
+        self.hlayout = QtWidgets.QHBoxLayout()
+        self.hlayout.addWidget(self.btn_refresh)
+        self.hlayout.addWidget(self.btn_inspect)
+        self.mainlayout.addLayout(self.hlayout)
+        
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_toggle)
         self.hlayout.addWidget(self.btn_install)
         self.mainlayout.addLayout(self.hlayout)
+
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_enableall)
         self.hlayout.addWidget(self.btn_disableall)
         self.mainlayout.addLayout(self.hlayout)
+
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_moveall)
         self.hlayout.addWidget(self.btn_moveall_to_prev)
@@ -192,6 +203,7 @@ class MainWindow(QtWidgets.QWidget):
 
         # Connect signals
         self.btn_refresh.clicked.connect(self.reload_mods_gui)
+        self.btn_inspect.clicked.connect(self.show_mod_details_window_from_btn)
         self.btn_install.clicked.connect(self.install_mod)
         self.btn_toggle.clicked.connect(self.toggle_mod)
         self.btn_disableall.clicked.connect(self.disable_all)
@@ -291,6 +303,20 @@ class MainWindow(QtWidgets.QWidget):
         if mod is None:
             print("No mod selected")
             return
+        secondary = ModInfoWindow(mod, self)
+        secondary.exec()
+        # Reload mods in case the mod was toggled or changed
+        self.reload_mods()
+
+    @QtCore.Slot()
+    def show_mod_details_window_from_btn(self):
+        index = self.mod_table_view.currentIndex()
+        if not index.isValid():
+            print("No mod selected")
+            return
+
+        #toggle
+        mod:ModInfo = index.data(QtCore.Qt.UserRole)
         secondary = ModInfoWindow(mod, self)
         secondary.exec()
         # Reload mods in case the mod was toggled or changed
