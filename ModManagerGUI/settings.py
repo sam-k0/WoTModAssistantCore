@@ -1,10 +1,11 @@
 #type:ignore
 from PySide6 import QtCore, QtWidgets, QtGui
-import modcore.manager
-from modcore.manager import VERSION
 import webbrowser
 import sys
 import json
+
+import modcore.manager
+import modcore.config
 from stylesheets import MATERIAL_DARK, MATERIAL_LIGHT
 
 class SettingsTabView(QtWidgets.QWidget):
@@ -45,11 +46,11 @@ class SettingsTabView(QtWidgets.QWidget):
         self.btn_open_mod_directory = QtWidgets.QPushButton("Show mod directory")
         self.btn_open_mod_directory.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
-        self.btn_check_updates = QtWidgets.QPushButton("Check for updates")
-        self.btn_check_updates.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.btn_extract_dir = QtWidgets.QPushButton("Show cache directory")
+        self.btn_extract_dir.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
-        self.btn_open_issue_tracker = QtWidgets.QPushButton("Report Bug")
-        self.btn_open_issue_tracker.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        self.btn_config_dir = QtWidgets.QPushButton("Show config directory")
+        self.btn_config_dir.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
         self.label_theme = QtWidgets.QLabel("Select Theme:", alignment=QtCore.Qt.AlignCenter)
 
@@ -60,18 +61,19 @@ class SettingsTabView(QtWidgets.QWidget):
 
         self.lbl_credit = QtWidgets.QLabel("Made with ♥ by sam-k0 and contributors.", alignment=QtCore.Qt.AlignCenter)
 
-        # hlayout for buttons in a row
+        # Shortcut buttons
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_github, alignment=QtCore.Qt.AlignCenter)
         self.hlayout.addWidget(self.btn_open_mod_directory, alignment=QtCore.Qt.AlignCenter)
-        self.hlayout.addWidget(self.btn_check_updates, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_extract_dir, alignment=QtCore.Qt.AlignCenter)
+        self.hlayout.addWidget(self.btn_config_dir, alignment=QtCore.Qt.AlignCenter)
+        # Themes
         theme_layout = QtWidgets.QHBoxLayout()
         theme_layout.addWidget(self.label_theme)
         theme_layout.addWidget(self.btn_change_theme)
         theme_widget = QtWidgets.QWidget()
         theme_widget.setLayout(theme_layout)
         self.hlayout.addWidget(theme_widget, alignment=QtCore.Qt.AlignCenter)
-        self.hlayout.addWidget(self.btn_open_issue_tracker, alignment=QtCore.Qt.AlignCenter)
         
 
         self.mainlayout.addWidget(self.lbl_settings_tab_top)
@@ -82,13 +84,14 @@ class SettingsTabView(QtWidgets.QWidget):
         self.mainlayout.addWidget(self.lbl_moddir)
         self.mainlayout.addWidget(self.lbl_num_installed_mods)
         self.mainlayout.addWidget(self.lbl_about)
+        # add shortcuts
         self.mainlayout.addLayout(self.hlayout)
         self.mainlayout.addWidget(self.lbl_credit)
 
         self.btn_github.clicked.connect(self.on_btn_github_clicked)
         self.btn_open_mod_directory.clicked.connect(self.on_btn_open_moddirectory_clicked)
-        self.btn_check_updates.clicked.connect(self.on_btn_check_updates_clicked)
-        self.btn_open_issue_tracker.clicked.connect(self.on_btn_show_issue_tracker)
+        self.btn_extract_dir.clicked.connect(self.on_btn_show_extract_dir)
+        self.btn_config_dir.clicked.connect(self.on_btn_show_config_dir)
         self.btn_change_theme.currentIndexChanged.connect(self.on_theme_change)
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -121,7 +124,7 @@ class SettingsTabView(QtWidgets.QWidget):
         self.lbl_moddir.setText(f"Managing mods from: <b>{self.manager_ref._newest_version_folder()}</b>")
         #TODO: update aobut label
         #msg, err, act = self.manager_ref.parse_response(self.manager_ref.get_about())
-        msg = VERSION
+        msg = modcore.manager.VERSION
         self.lbl_about.setText("Version: <b>"+msg+"</b>")
 
     @QtCore.Slot()
@@ -139,24 +142,19 @@ class SettingsTabView(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def on_btn_open_moddirectory_clicked(self):
-        # cross platform way to open a file explorer is using the webbrowser.
-        # get selected item from combobox
+        """ Opens the directory of mods """
         path = "file://"+self.cbb_detected_game_versions.currentText()
-
-        if sys.platform == "win32":
-            webbrowser.open(path,0, True)
-        elif sys.platform == "linux":
-            webbrowser.open(path,0, True)
+        webbrowser.open(path,0, True)
 
     @QtCore.Slot()
-    def on_btn_show_issue_tracker(self):
-        url = "https://github.com/sam-k0/WoTModAssistantCore/issues"
-        webbrowser.open(url, 0, True)
+    def on_btn_show_config_dir(self):
+        """ Opens the config dir """
+        path = "file://"+modcore.config.ConfigIO.get_config_dir()
+        webbrowser.open(path, 0, True)
         pass
 
     @QtCore.Slot()
-    def on_btn_check_updates_clicked(self):
-        # check for updates
-        url = "https://github.com/sam-k0/WoTModAssistantCore/releases/"
-        webbrowser.open(url, 0, True)
-        pass
+    def on_btn_show_extract_dir(self):
+        """ Opens the directory used to extract mods """
+        path = "file://"+modcore.config.ConfigIO.get_extract_folder()
+        webbrowser.open(path,0, True)
