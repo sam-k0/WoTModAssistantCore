@@ -26,7 +26,7 @@ modules:
       - pip3 install --no-index --find-links=ModManagerGUI/wheels --prefix=/app -r ModManagerGUI/requirements.txt
       - cp -r ModManagerGUI /app/
       - install -Dm755 ModManagerGUI/run.sh /app/bin/ModManagerGUI
-      - install -Dm644 ModManagerGUI/modmanager-gui.desktop /app/share/applications/modmanager-gui.desktop
+      - install -Dm644 ModManagerGUI/modmanager-gui.desktop /app/share/applications/eu.samk0.WoTModAssistant.desktop
       - install -Dm644 ModManagerGUI/icons/icon.png /app/share/icons/hicolor/256x256/apps/icon.png
     sources:
       - type: git
