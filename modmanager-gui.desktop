@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=WoT Mod Assistant
+Comment=Manage your World of Tanks mods
+Exec=ModManagerGUI
+Icon=icon
+Terminal=false
+Type=Application
+Categories=Game;Utility;
