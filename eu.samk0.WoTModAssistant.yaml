@@ -27,7 +27,7 @@ modules:
       - cp -r ModManagerGUI /app/
       - install -Dm755 ModManagerGUI/run.sh /app/bin/ModManagerGUI
       - install -Dm644 ModManagerGUI/eu.samk0.WoTModAssistant.desktop /app/share/applications/eu.samk0.WoTModAssistant.desktop
-      - install -Dm644 ModManagerGUI/icons/icon.png /app/share/icons/hicolor/256x256/apps/icon.png
+      - install -Dm644 ModManagerGUI/icons/eu.samk0.WoTModAssistant.png /app/share/icons/hicolor/256x256/apps/eu.samk0.WoTModAssistant.png
     sources:
       - type: git
         url: https://github.com/sam-k0/WoTModAssistantCore.git
