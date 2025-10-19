@@ -68,7 +68,10 @@ class MainWindow(QtWidgets.QWidget):
         try:
             self.modmanager = ModManager(json_output=True)
         except Exception as e: # not set up
-            self.show_error(str(e),"Needs setting up config")
+            self.show_error(
+                "There is no config file yet. Please select your World of Tanks install directory in the next step.\n(Where WorldOfTanks.exe is).",
+                "Needs setting up config", 
+                QtWidgets.QMessageBox.Icon.Warning)
             path = self.setup_game_dir()
             conf = Config(GameInstallDir=path)
             ConfigIO.write_config(config=conf)

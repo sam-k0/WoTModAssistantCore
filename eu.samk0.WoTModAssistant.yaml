@@ -5,20 +5,22 @@ sdk: org.freedesktop.Sdk
 command: ModManagerGUI
 finish-args:
   - --filesystem=home
-  - --filesystem=xdg-documents
-  - --filesystem=xdg-config  # Read/write to config directories (~/.config)
-  - --filesystem=xdg-cache  # Optional: for any caches
+  #- --filesystem=xdg-documents
+  #- --filesystem=xdg-config  
+  #- --filesystem=xdg-cache  
   
   # Persist user data between Flatpak updates
   - --persist=~/.config/wotmodassistant
   - --persist=~/.cache/wotmodassistant
 
-  - --share=network
-  - --device=dri
-  - --device=all  # Only if you need full device access (optional)
+  # Desktop perms
   - --socket=session-bus
   - --socket=x11
   - --socket=wayland
+  # Network and GPU accel
+  - --share=network
+  - --device=dri
+
 modules:
   - name: modmanager-gui
     buildsystem: simple
