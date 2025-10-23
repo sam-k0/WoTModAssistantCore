@@ -10,7 +10,7 @@ from .mod import ModInfo
 from typing import List, Tuple
 from PySide6 import QtCore, QtWidgets, QtGui
 
-VERSION = "2025.10.15"
+VERSION = "2025.10.23"
 
 
 # ---- Enums & Output ----
@@ -137,8 +137,11 @@ class ModManager:
         mod.IsEnabled = enabled
         return mod
 
-    def install_mod(self, filename: str) -> Output:
+    def install_mod(self, filename: str, target_folder:str="") -> Output:
         mods_dir = self._newest_version_folder()
+        if target_folder != "": # override default mods dir
+            mods_dir = target_folder
+
         if not os.path.exists(filename):
             return self._log("Mod file not found.", ErrorCode.ModNotFound, ActionCode.Install)
         try:
@@ -164,7 +167,6 @@ class ModManager:
 
                     if ret == QtWidgets.QMessageBox.Yes:  #type:ignore
                         msg, err, act = self.output_split(self.uninstall_mod(mod.PackageID)) 
-
 
             if canInstall:
                 shutil.copy2(filename, mods_dir)
@@ -207,10 +209,11 @@ class ModManager:
             return self._log("No older version to move from.", ErrorCode.FilesystemFailed, ActionCode.MoveToNew)
         newest = folders[-1]
 
+        # Use install_mod to do this
         for mod in Path(origin_folder).glob("*.wotmod*"):
-            dest = Path(newest) / mod.name
-            if not dest.exists():
-                shutil.copy2(mod, dest)
+            msg, err, act = self.output_split(self.install_mod(str(mod), newest))
+            if err != ErrorCode.Success:
+                return self._log(f"Failed to move mod {mod.name}: {msg}", err, ActionCode.MoveToNew)
 
         return self._log("Moved mods to newest folder.", ErrorCode.Success, ActionCode.MoveToNew)
 
@@ -222,9 +225,9 @@ class ModManager:
         newest = folders[-1]
 
         for mod in Path(newest).glob("*.wotmod*"):
-            dest = Path(destination_folder) / mod.name
-            if not dest.exists():
-                shutil.copy2(mod, dest)
+            msg, err, act = self.output_split(self.install_mod(str(mod), destination_folder))
+            if err != ErrorCode.Success:
+                return self._log(f"Failed to move mod {mod.name}: {msg}", err, ActionCode.MoveToNew)
 
         return self._log("Moved mods to newest folder.", ErrorCode.Success, ActionCode.MoveToNew)
 

@@ -50,11 +50,11 @@ class ModsTableModel(QtCore.QAbstractTableModel):
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()
         if column == 0:
-            self.mods.sort(key=lambda x: x.name)
+            self.mods.sort(key=lambda x: x.ModName)
         elif column == 1:
-            self.mods.sort(key=lambda x: x.version)
+            self.mods.sort(key=lambda x: x.Version)
         elif column == 2:
-            self.mods.sort(key=lambda x: x.isenabled)
+            self.mods.sort(key=lambda x: x.IsEnabled)
         if order == QtCore.Qt.DescendingOrder:
             self.mods.reverse()
         self.layoutChanged.emit()
@@ -91,6 +91,7 @@ class MainWindow(QtWidgets.QWidget):
 
         self.lbl_details = QtWidgets.QLabel("Details", alignment=QtCore.Qt.AlignCenter)
         self.lbl_description = QtWidgets.QLabel("Description", alignment=QtCore.Qt.AlignCenter, wordWrap=True)
+        self.lbl_inspect_mod_help = QtWidgets.QLabel("Tip: Right click a list entry to see details.", alignment=QtCore.Qt.AlignCenter, wordWrap=True)
         self.lbl_action_log = QtWidgets.QLabel("Action log", alignment=QtCore.Qt.AlignCenter)
         self.lbl_action_log.setWordWrap(True)
 
@@ -101,7 +102,8 @@ class MainWindow(QtWidgets.QWidget):
         self.mod_table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.mod_table_view.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.mod_table_view.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.mod_table_view.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+    # Use ResizeToContents for rows so they don't stretch vertically
+        self.mod_table_view.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.mod_table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.mod_table_view.setShowGrid(True)
         self.mod_table_view.setAlternatingRowColors(False)
@@ -109,9 +111,10 @@ class MainWindow(QtWidgets.QWidget):
         self.mod_table_view.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.mod_table_view.resizeColumnsToContents()
         self.mod_table_view.resizeRowsToContents()
-        self.mod_table_view.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustIgnored)
+    # Allow the table to adjust itself to contents and expand when the window resizes
+        self.mod_table_view.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.mod_table_view.setWordWrap(True)
-        self.mod_table_view.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        self.mod_table_view.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.mod_table_view.verticalHeader().setVisible(False)  # Hide vertical header
 
         # Buttons
@@ -155,6 +158,7 @@ class MainWindow(QtWidgets.QWidget):
         self.mainlayout.addWidget(self.mod_table_view)
         self.mainlayout.addWidget(self.lbl_details)
         self.mainlayout.addWidget(self.lbl_description)
+        self.mainlayout.addWidget(self.lbl_inspect_mod_help)
         self.mainlayout.addStretch()
 
         self.hlayout = QtWidgets.QHBoxLayout()
@@ -552,7 +556,7 @@ class ImportPrevModsWindow(QtWidgets.QDialog):
         msg, err, act = self.modmanager.output_split(response)
         if err.value != 0:
             self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")
-        self.parent_window.update_action_log(resp, err.value, act.value)
+        self.parent_window.update_action_log(msg, err.value, act.value)
         self.close()
 
 # Window popup to export mods to a previous version
