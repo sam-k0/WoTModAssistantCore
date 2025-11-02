@@ -27,7 +27,7 @@ modules:
     build-options:
       network: true
     build-commands:
-      - pip3 install --prefix=/app -r ModManagerGUI/requirements.txt
+      - pip3 install --no-index --find-links=ModManagerGUI/wheels --prefix=/app -r ModManagerGUI/requirements.txt
       - cp -r ModManagerGUI /app/
       - install -Dm755 ModManagerGUI/run.sh /app/bin/ModManagerGUI
       - install -Dm644 ModManagerGUI/eu.samk0.WoTModAssistant.desktop /app/share/applications/eu.samk0.WoTModAssistant.desktop
@@ -36,3 +36,6 @@ modules:
       - type: git
         url: https://github.com/sam-k0/WoTModAssistantCore.git
         branch: flatpak
+      - type: dir
+        path: ModManagerGUI/wheels
+        dest: ModManagerGUI/wheels

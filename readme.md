@@ -80,7 +80,7 @@ git clone https://github.com/sam-k0/WoTModAssistantCore.git
 cd WoTModAssistantCore
 git checkout flatpak
 mkdir -p ModManagerGUI/wheels
-pip wheel --wheel-dir=ModManagerGUI/wheels -r ModManagerGUI/requirements.txt
+pip wheel --wheel-dir=ModManagerGUI/wheels -r ModManagerGUI/requirements.txt --no-cache-dir
 flatpak-builder --user --install --force-clean build-dir eu.samk0.WoTModAssistant.yaml
 ```
 
