@@ -24,6 +24,8 @@ finish-args:
 modules:
   - name: modmanager-gui
     buildsystem: simple
+    build-options:
+      network: true
     build-commands:
       - pip3 install --no-index --find-links=ModManagerGUI/wheels --prefix=/app -r ModManagerGUI/requirements.txt
       - cp -r ModManagerGUI /app/
@@ -34,6 +36,3 @@ modules:
       - type: git
         url: https://github.com/sam-k0/WoTModAssistantCore.git
         branch: flatpak
-      - type: dir
-        path: ModManagerGUI/wheels
-        dest: ModManagerGUI/wheels
