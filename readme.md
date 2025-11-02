@@ -65,6 +65,14 @@ As I have not yet submitted the app to flathub, you will need to install it manu
 #### Linux Debian/Ubuntu
 - `sudo apt install flatpak flatpak-builder git python3-pip`
 
+
+Now, install Flatpak SDK 24.08:
+
+```
+flatpak install org.freedesktop.Sdk
+```
+
+
 Then, continue with the following steps:
 
 ```bash
