@@ -10,33 +10,6 @@ import xml.etree.ElementTree as ET
 from modcore.manager import ModManager
 from modcore.config import ConfigIO
 
-# cross platform way to get the download directory for modbrowser
-# creates the directory if it doesn't exist
-def get_download_dir():
-    download_dir = ""
-    if sys.platform == "win32":
-        installation_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core","download")
-    elif sys.platform == "linux":
-        download_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Core", "download")
-    else:
-        raise Exception("Unsupported platform: "+sys.platform)
-    
-    if not os.path.exists(download_dir):
-        os.makedirs(download_dir)
-    return download_dir
-
-def clear_download_dir():
-    download_dir = get_download_dir()
-
-    for entry in os.listdir(download_dir):
-        path = os.path.join(download_dir, entry)
-        try:
-            if os.path.isfile(path) or os.path.islink(path):
-                os.remove(path)
-            elif os.path.isdir(path):
-                shutil.rmtree(path)
-        except Exception as e:
-            print(f"Error removing {entry}: {e}")
 
 class WGModsSearchResultsModel(QtCore.QAbstractTableModel):
     def __init__(self, search_results:wgmods.WGModsSearchResults, parent=None, search_type:str="start_page"):
@@ -396,15 +369,10 @@ class DownloadDialog(QtWidgets.QDialog):
     def download_mod(self):
         print("Downloading mod from URL:", self.download_url)
         # get the download directory
-        download_dir = get_download_dir()
+        download_dir = ConfigIO.get_download_folder()
         # clear download directory
         print("Clearing download directory at ", download_dir)
-        clear_download_dir()
-
-        #if self.download_url.endswith(".wotmod"):
-        #    self.download_install_wotmod(download_url=self.download_url)
-        #elif self.download_url.endswith(".zip"):
-        #    self.download_install_zip(download_url=self.download_url)
+        ConfigIO.clear_download_folder()
 
         self.download_methods[self.download_url.split(".")[-1].replace(".","")](download_url=self.download_url)
 
@@ -463,7 +431,7 @@ class DownloadDialog(QtWidgets.QDialog):
 
     def download_install_wotmod(self, download_url:str):
         localfilename = download_url.split("/")[-1] # get the filename from the URL
-        localpath = os.path.join(get_download_dir(), localfilename)
+        localpath = os.path.join(ConfigIO.get_download_folder(), localfilename)
         # download the file
         wgmods.download_from_url(download_url, localpath, self.callback_progress)
         
@@ -473,23 +441,23 @@ class DownloadDialog(QtWidgets.QDialog):
         # install the mod
         self.modmanager.install_mod(localpath)
         # Clean up the download directory
-        clear_download_dir()
+        ConfigIO.clear_download_folder()
 
     def download_install_zip(self, download_url:str):
         # extract zip file to the download directory and try to install all mods in it
         localfilename = self.download_url.split("/")[-1]  # get the filename from the URL
-        localpath = os.path.join(get_download_dir(), localfilename)
+        localpath = os.path.join(ConfigIO.get_download_folder(), localfilename)
         # download the file
         wgmods.download_from_url(self.download_url, localpath, self.callback_progress)
 
         # extract the zip file
         with zipfile.ZipFile(localpath, 'r') as zip_ref:
-            zip_ref.extractall(get_download_dir())
+            zip_ref.extractall(ConfigIO.get_download_folder())
 
         # install all mods in the extracted directory
-        for root, dirs, files in os.walk(get_download_dir()):
+        for root, dirs, files in os.walk(ConfigIO.get_download_folder()):
             for file in files:
                 if file.endswith(".wotmod"):
                     self.modmanager.install_mod(os.path.join(root, file))
         # Clean up the download directory
-        clear_download_dir()
+        ConfigIO.clear_download_folder()

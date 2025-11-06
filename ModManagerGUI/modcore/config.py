@@ -70,6 +70,24 @@ class ConfigIO:
                 os.remove(full_path)
 
     @staticmethod
+    def get_download_folder() -> str:
+        base_cache = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
+        download_dir = os.path.join(base_cache, "wotmodassistant", "download")
+        os.makedirs(download_dir, exist_ok=True)
+        return download_dir
+    
+    @staticmethod
+    def clear_download_folder():
+        download_dir = ConfigIO.get_download_folder()
+        # remove all subdirectories
+        for subdir in os.listdir(download_dir):
+            full_path = os.path.join(download_dir, subdir)
+            if os.path.isdir(full_path):
+                shutil.rmtree(full_path)
+            else:
+                os.remove(full_path)
+
+    @staticmethod
     def get_mods_folder_path() -> str:
         config = ConfigIO.read_config()
         if config is None or config.GameInstallDir is None:
