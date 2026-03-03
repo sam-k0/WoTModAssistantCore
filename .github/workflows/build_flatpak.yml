@@ -24,7 +24,12 @@ jobs:
       - name: Download Python wheels
         run: |
           mkdir -p ModManagerGUI/wheels
-          pip download -r ModManagerGUI/requirements.txt -d ModManagerGUI/wheels
+          pip download \
+            --only-binary=:all: \
+            --python-version 311 \
+            --no-deps \
+            -r ModManagerGUI/requirements.txt \
+            -d ModManagerGUI/wheels
 
       - name: Build Flatpak bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
