@@ -15,16 +15,8 @@ finish-args:
   - --device=dri
 
 modules:
-  - name: python-deps
-    buildsystem: simple
-    build-commands:
-      - python3 -m pip install --prefix=/app --no-build-isolation -r requirements.txt
-    sources:
-      - type: file
-        path: ModManagerGUI/requirements.txt
-    cleanup:
-      - "*.dist-info"
-      - "__pycache__"
+  - type: module
+    import: python3-requirements.json
 
   - name: modmanager-gui
     buildsystem: simple
