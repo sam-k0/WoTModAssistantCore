@@ -5,6 +5,7 @@ on:
   push:
     tags:
       - 'v*'          # any tag starting with v, e.g., v1.2.3
+  workflow_dispatch:  # Allow manual trigger
 
 permissions:
   contents: write    # required for creating/updating releases and uploading assets
