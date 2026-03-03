@@ -15,8 +15,7 @@ finish-args:
   - --device=dri
 
 modules:
-  - type: module
-    import: python3-requirements.json
+  - python3-requirements.json
 
   - name: modmanager-gui
     buildsystem: simple
