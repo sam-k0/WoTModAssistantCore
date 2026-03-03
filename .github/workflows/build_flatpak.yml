@@ -27,6 +27,9 @@ jobs:
           pip download \
             --only-binary=:all: \
             --python-version 311 \
+            --implementation cp \
+            --abi cp311 \
+            --platform manylinux2014_x86_64 \
             -r ModManagerGUI/requirements.txt \
             -d ModManagerGUI/wheels
 
@@ -37,7 +40,6 @@ jobs:
           bundle: WoTModAssistant.flatpak
           cache-key: flatpak-${{ github.sha }}
           upload-artifact: false
-          allow-freedesktop-checkout: true
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
