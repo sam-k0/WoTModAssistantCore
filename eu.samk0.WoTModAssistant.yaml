@@ -16,6 +16,12 @@ finish-args:
 
 modules:
   - python3-requirements.json
+  
+  - name: python3-pyside6
+    buildsystem: simple
+    build-commands:
+      - echo "PySide6 provided by runtime"
+    sources: []
 
   - name: modmanager-gui
     buildsystem: simple
