@@ -27,17 +27,17 @@ jobs:
           pip download \
             --only-binary=:all: \
             --python-version 311 \
-            --no-deps \
             -r ModManagerGUI/requirements.txt \
             -d ModManagerGUI/wheels
 
       - name: Build Flatpak bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          manifest-path: eu.samk0.WoTModAssistant.yaml   # adjust if needed
+          manifest-path: eu.samk0.WoTModAssistant.yaml
           bundle: WoTModAssistant.flatpak
           cache-key: flatpak-${{ github.sha }}
           upload-artifact: false
+          allow-freedesktop-checkout: true
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
