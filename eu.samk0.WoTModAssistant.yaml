@@ -2,7 +2,15 @@ app-id: eu.samk0.WoTModAssistant
 runtime: org.kde.Platform
 runtime-version: "6.10"
 sdk: org.kde.Sdk
+base: io.qt.PySide.BaseApp
+base-version: '6.10'
+build-options:
+  env:
+    - BASEAPP_REMOVE_WEBENGINE=1
+    - BASEAPP_DISABLE_NUMPY=1
 command: ModManagerGUI
+cleanup-commands:
+  - /app/cleanup-BaseApp.sh
 
 finish-args:
   - --filesystem=home
@@ -17,12 +25,6 @@ finish-args:
 modules:
   - python3-requirements.json
   
-  - name: python3-pyside6
-    buildsystem: simple
-    build-commands:
-      - echo "PySide6 provided by runtime"
-    sources: []
-
   - name: modmanager-gui
     buildsystem: simple
     build-commands:
