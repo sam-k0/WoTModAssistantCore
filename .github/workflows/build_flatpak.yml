@@ -1,17 +1,16 @@
-name: Build Flatpak and Publish
+name: Build Flatpak and Publish Release
 
-# Trigger on pushes to version tags
 on:
   push:
     tags:
-      - 'v*'          # any tag starting with v, e.g., v1.2.3
-  workflow_dispatch:  # Allow manual trigger
+      - "v*"
+  workflow_dispatch:
 
 permissions:
-  contents: write    # required for creating/updating releases and uploading assets
+  contents: write
 
 jobs:
-  build_flatpak:
+  build:
     name: Build Flatpak
     runs-on: ubuntu-latest
     container:
@@ -19,48 +18,37 @@ jobs:
       options: --privileged
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build Flatpak bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          manifest-path: eu.samk0.WoTModAssistant.yaml
+          manifest-path: eu.samk0.WoTModAssistant.yaml   # adjust if needed
           bundle: WoTModAssistant.flatpak
-          cache-key: flatpak-builder-${{ github.sha }}
-          upload-artifact: true     # upload the flatpak as artifact
+          cache-key: flatpak-${{ github.sha }}
+          upload-artifact: false
 
-      # Upload artifact (optional if you want it in CI artifacts as well)
-      - name: Upload Flatpak artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: WoTModAssistant-flatpak
+          name: flatpak-bundle
           path: WoTModAssistant.flatpak
 
-  publish_release:
-    name: Create Release and Upload Asset
-    needs: build_flatpak
+  release:
+    name: Publish Release
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Flatpak artifact
-        uses: actions/download-artifact@v3
+      - name: Download bundle
+        uses: actions/download-artifact@v4
         with:
-          name: WoTModAssistant-flatpak
+          name: flatpak-bundle
 
-      - name: Create / Update Release
-        id: release
-        uses: actions/create-release@v1
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Flatpak to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: ./WoTModAssistant.flatpak
-          asset_name: WoTModAssistant.flatpak
-          asset_content_type: application/octet-stream
+          files: WoTModAssistant.flatpak
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
