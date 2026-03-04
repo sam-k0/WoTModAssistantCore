@@ -1,5 +1,5 @@
 # WoT Mod Assistant
-[![Build Flatpak and Publish Release](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml)
+[![Linux Flatpak](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml)
 
 A simple cross-platform mod manager for World of Tanks.
 
@@ -59,6 +59,12 @@ To install, the recommended way is to use the flatpak.
 As I have not yet submitted the app to flathub, you will need to install it manually for now.
 
 Download the latest release from the release page.
+
+**Installing first time:**
+`flatpak install --user --bundle WoTModAssistant.flatpak`
+
+**Updating**
+`flatpak update --user --reinstall --bundle WoTModAssistant.flatpak`
 
 # Instructions below are for legacy version found in the releases tab.
 As I am changing the whole project structure and code, there is no working release at the moment.
