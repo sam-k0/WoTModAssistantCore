@@ -58,41 +58,7 @@ Planned features:
 To install, the recommended way is to use the flatpak.
 As I have not yet submitted the app to flathub, you will need to install it manually for now.
 
-#### Linux Fedora
-- `sudo dnf install flatpak flatpak-builder git python3-pip`
-
-
-#### Linux Debian/Ubuntu
-- `sudo apt install flatpak flatpak-builder git python3-pip`
-
-
-Now, install Flatpak SDK 24.08:
-
-```
-flatpak install org.freedesktop.Sdk
-```
-
-
-Then, continue with the following steps:
-
-> [!IMPORTANT]  
-> You need to use python 3.11 for building / downloading the wheels.
-
-```bash
-git clone https://github.com/sam-k0/WoTModAssistantCore.git
-cd WoTModAssistantCore
-git checkout flatpak
-mkdir -p ModManagerGUI/wheels
-pip wheel --wheel-dir=ModManagerGUI/wheels -r ModManagerGUI/requirements.txt --no-cache-dir
-flatpak-builder --user --install --force-clean build-dir eu.samk0.WoTModAssistant.yaml
-```
-
-To export a complete flatpak bundle for distribution, use the following commands:
-
-```bash
-flatpak-builder --repo=repo build-dir --force-clean eu.samk0.WoTModAssistant.yaml
-flatpak build-bundle repo WoTModAssistant.flatpak eu.samk0.WoTModAssistant
-```
+Download the latest release from the release page.
 
 # Instructions below are for legacy version found in the releases tab.
 As I am changing the whole project structure and code, there is no working release at the moment.
