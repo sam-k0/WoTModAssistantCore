@@ -1,7 +1,8 @@
 # WoT Mod Assistant
 [![Linux Flatpak](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml)
 
-A simple cross-platform mod manager for World of Tanks.
+A simple ~~cross-platform~~ mod manager for World of Tanks.
+*Right now, compatibility with Windows should be possible but not guaranteed.*
 
 ### Compatibility
 - Windows (10+)
