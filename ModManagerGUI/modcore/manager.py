@@ -10,7 +10,7 @@ from .mod import ModInfo
 from typing import List, Tuple
 from PySide6 import QtCore, QtWidgets, QtGui
 
-VERSION = "2026.03.04"
+VERSION = "2026.10.04"
 
 
 # ---- Enums & Output ----
