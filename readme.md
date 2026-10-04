@@ -1,5 +1,5 @@
 # WoT Mod Assistant
-[![Linux Flatpak](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml)
+[![Linux Flatpak](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml)[![Build Windows](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_win.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_win.yml)
 
 A simple mod manager for World of Tanks.
 *Developed primarily on Linux, with Windows support.*
