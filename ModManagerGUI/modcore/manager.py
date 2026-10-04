@@ -178,7 +178,11 @@ class ModManager:
         mods_dir = self._newest_version_folder()
         found = False
         for file in Path(mods_dir).glob("*.wotmod*"):
-            if package_id.lower() in file.name.lower():
+            try:
+                mod = self._extract_meta(str(file))
+            except Exception:
+                continue
+            if mod.PackageID and package_id.lower() in mod.PackageID.lower():
                 found = True
                 try:
                     file.unlink()
@@ -192,7 +196,11 @@ class ModManager:
         mods_dir = self._newest_version_folder()
         found = False
         for file in Path(mods_dir).glob("*.wotmod*"):
-            if package_id.lower() in file.name.lower():
+            try:
+                mod = self._extract_meta(str(file))
+            except Exception:
+                continue
+            if mod.PackageID and package_id.lower() in mod.PackageID.lower():
                 found = True
                 new_name = file.with_suffix(file.suffix + ".disabled") if not file.name.endswith(".disabled") else file.with_suffix("")
                 try:

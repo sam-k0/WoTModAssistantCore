@@ -51,12 +51,13 @@ Planned features:
         - [x] Local cache can be searched
     - [x] .wotmod file download and install
     - [x] .zip file download and install
-    - [ ] Modpack support
     - [ ] Mod update checking
 - [ ] `res_mods` directory support
 - [ ] Localization / language support
 - [x] Styling and theming
     - [x] Persist theme preference across restarts
+
+Executable installers for modpacks (`.exe`) will not be supported, as they won't run on Linux anyways. People should just stop creating modpacks as `.exe` installers and instead use `.wotmod` or `.zip` files.
 
 ### Install
 The recommended way to run the app is to use the Flatpak build.

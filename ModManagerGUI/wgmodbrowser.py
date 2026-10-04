@@ -171,8 +171,7 @@ class WGModsSearchResultsView(QtWidgets.QWidget):
         self.search_bar = QtWidgets.QLineEdit(self)
         self.search_bar.setPlaceholderText("Search mods...")
         self.search_bar.setClearButtonEnabled(True)
-        # change text color to black
-        self.search_bar.setStyleSheet("QLineEdit { color: white; }")
+        # Text color follows the active theme stylesheet (dark text in light mode)
         
         # Create search button with spyglass icon
         self.search_button = QtWidgets.QPushButton(self)
@@ -418,6 +417,44 @@ class DownloadDialog(QtWidgets.QDialog):
         
         print("Repacked mod to ", localpath)
 
+    # Injects the wgmods id into the meta.xml of every .wotmod found in a directory
+    def inject_wgmodid_to_all_meta(self, directory:str):
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith(".wotmod"):
+                    wotmod_path = os.path.join(root, file)
+                    target = ConfigIO.get_extract_folder() + os.sep + file
+                    with zipfile.ZipFile(wotmod_path, 'r') as zip_ref:
+                        zip_ref.extractall(target)
+                    
+                    # find the meta.xml file
+                    metafile = None
+                    for r, d, f in os.walk(target):
+                        for mf in f:
+                            if mf == "meta.xml":
+                                metafile = os.path.join(r, mf)
+                                break
+                        if metafile is not None:
+                            break
+                    
+                    if metafile is not None:
+                        tree = ET.parse(metafile)
+                        root_el = tree.getroot()
+                        modid = ET.SubElement(root_el, "wgid")
+                        modid.text = str(self.modid)
+                        tree.write(metafile)
+                        print("Added mod ID to meta.xml file for:", file)
+                    
+                    # repack the mod back to a .wotmod file
+                    with zipfile.ZipFile(wotmod_path, 'w') as zip_ref:
+                        for r, d, f in os.walk(target):
+                            for ff in f:
+                                file_path = os.path.join(r, ff)
+                                arcname = os.path.relpath(file_path, target)
+                                zip_ref.write(file_path, arcname)
+                    
+                    shutil.rmtree(target, ignore_errors=True)
+
     def callback_progress(self, downloaded:int, total:int):
         self.progressbar.show()
         self.progressbar.setMaximum(total)
@@ -453,6 +490,9 @@ class DownloadDialog(QtWidgets.QDialog):
         # extract the zip file
         with zipfile.ZipFile(localpath, 'r') as zip_ref:
             zip_ref.extractall(ConfigIO.get_download_folder())
+
+        # inject the wgmods id into every wotmod's meta.xml in the archive
+        self.inject_wgmodid_to_all_meta(ConfigIO.get_download_folder())
 
         # install all mods in the extracted directory
         for root, dirs, files in os.walk(ConfigIO.get_download_folder()):
