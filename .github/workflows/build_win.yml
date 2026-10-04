@@ -3,76 +3,42 @@ name: Build Windows
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
+    name: Build Windows Exe
     runs-on: windows-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up .NET SDK
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Restore .NET dependencies
-      run: |
-        cd ModManagerCore
-        dotnet restore
-
-    - name: Build .NET project
-      run: |
-        cd ModManagerCore
-        dotnet build --configuration Release
-
-    - name: Publish .NET project
-      run: |
-        cd ModManagerCore
-        dotnet publish --configuration Release --output ${{ github.workspace }}/publish/Core --self-contained -r win-x64
-
-    - name: List published files
-      run: |
-        dir ${{ github.workspace }}/publish/Core
+      uses: actions/checkout@v4
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
-    - name: Install dependencies for Python
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install PySide6 pyinstaller
+        pip install -r ModManagerGUI/requirements-local.txt
 
-    - name: Build ModManagerGUI with PyInstaller
+    - name: Build self-contained exe with PyInstaller
       run: |
         cd ModManagerGUI
-        pyinstaller --add-data "${{ github.workspace }}/publish/Core;Core" --name ModManagerGUI --windowed main.py
+        pyinstaller --clean --noconfirm --windowed --onefile --name WoTModAssistant main.py
 
-    - name: Zip ModManagerGUI directory
+    - name: Zip exe
       run: |
-        cd ${{ github.workspace }}/ModManagerGUI/dist
-        powershell -Command "Compress-Archive -Path ModManagerGUI -DestinationPath ModManagerGUI_win.zip"
+        $exe = "ModManagerGUI/dist/WoTModAssistant/WoTModAssistant.exe"
+        Compress-Archive -Path $exe -DestinationPath "WoTModAssistant-win.zip"
 
     - name: Create a new release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: win_${{ github.run_number }} 
-        release_name: "Windows Release ${{ github.run_number }}"  # Optional, you can change the name
-        draft: false  # Set to true if you want to create a draft release
-        prerelease: false  # Set to true if it's a prerelease
-        body: "Release for Windows"
-
-    - name: Upload ModManagerGUI artifact to release
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/ModManagerGUI/dist/ModManagerGUI_win.zip
-        asset_name: ModManagerGUI_win.zip
-        asset_content_type: application/zip
+        name: WoTModAssistant ${{ github.run_number }}
+        files: WoTModAssistant-win.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
