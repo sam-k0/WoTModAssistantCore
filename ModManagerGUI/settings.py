@@ -19,6 +19,7 @@ class SettingsTabView(QtWidgets.QWidget):
         self.init_widgets() # calls the init_widgets function self
         self.update_get_installed_mods() # calls the update_get_installed_mods function self
         self.update_get_game_versions() # calls the update_get_game_versions function self
+        self.load_saved_theme() # load the saved theme preference
 
     
     def init_widgets(self):
@@ -127,12 +128,28 @@ class SettingsTabView(QtWidgets.QWidget):
         msg = modcore.manager.VERSION
         self.lbl_about.setText("Version: <b>"+msg+"</b>")
 
+    def load_saved_theme(self):
+        config = modcore.config.ConfigIO.read_config()
+        if config is not None and getattr(config, "Theme", None) in ("Light", "Dark"):
+            index = 0 if config.Theme == "Light" else 1
+            self.btn_change_theme.setCurrentIndex(index)
+            self.apply_theme()
+
     @QtCore.Slot()
-    def on_theme_change(self):
+    def apply_theme(self):
         if self.btn_change_theme.currentText() == "Dark":
             self.app.setStyleSheet(MATERIAL_DARK)
         else:
             self.app.setStyleSheet(MATERIAL_LIGHT)
+
+    @QtCore.Slot()
+    def on_theme_change(self):
+        self.apply_theme()
+        config = modcore.config.ConfigIO.read_config()
+        if config is None:
+            config = modcore.config.Config()
+        config.Theme = self.btn_change_theme.currentText()
+        modcore.config.ConfigIO.write_config(config)
 
     @QtCore.Slot()
     def on_btn_github_clicked(self):

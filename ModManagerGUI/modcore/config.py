@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class Config:
     GameInstallDir: str | None = None
+    Theme: str = "Light"
 
 
 class ConfigIO:

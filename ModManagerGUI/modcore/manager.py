@@ -203,19 +203,24 @@ class ModManager:
             return self._log("Mod not found.", ErrorCode.ModNotFound, ActionCode.Toggle)
         return self._log(f"Toggled {package_id}", ErrorCode.Success, ActionCode.Toggle)
 
-    def move_to_newest_from(self, origin_folder:str) -> Output:
+    def move_to_newest_from(self, origin_folder:str, target_folder:str="") -> Output:
         folders = self._version_folders()
         if len(folders) < 2:
             return self._log("No older version to move from.", ErrorCode.FilesystemFailed, ActionCode.MoveToNew)
-        newest = folders[-1]
+
+        # default target is the newest version folder
+        if target_folder == "":
+            target_folder = folders[-1]
+        if target_folder not in folders:
+            return self._log("Selected target version folder not found.", ErrorCode.FilesystemFailed, ActionCode.MoveToNew)
 
         # Use install_mod to do this
         for mod in Path(origin_folder).glob("*.wotmod*"):
-            msg, err, act = self.output_split(self.install_mod(str(mod), newest))
+            msg, err, act = self.output_split(self.install_mod(str(mod), target_folder))
             if err != ErrorCode.Success:
                 return self._log(f"Failed to move mod {mod.name}: {msg}", err, ActionCode.MoveToNew)
 
-        return self._log("Moved mods to newest folder.", ErrorCode.Success, ActionCode.MoveToNew)
+        return self._log(f"Moved mods to version {os.path.basename(target_folder)} folder.", ErrorCode.Success, ActionCode.MoveToNew)
 
 
     def move_from_newest_to(self, destination_folder:str)->Output:

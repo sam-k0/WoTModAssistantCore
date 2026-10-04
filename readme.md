@@ -1,24 +1,26 @@
 # WoT Mod Assistant
 [![Linux Flatpak](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml/badge.svg)](https://github.com/sam-k0/WoTModAssistantCore/actions/workflows/build_flatpak.yml)
 
-A simple ~~cross-platform~~ mod manager for World of Tanks.
-*Right now, compatibility with Windows should be possible but not guaranteed.*
+A simple mod manager for World of Tanks.
+*Developed primarily on Linux, with Windows support.*
 
 ### Compatibility
+- Linux
 - Windows (10+)
-- Linux 
 
 > [!IMPORTANT]
 > As this tool is primarily developed on Linux, bugs and issues may arise on Windows.
 > Please report any issues to the issue tracker.
 
-MacOS/darwin support is not planned but not explicitly impossible.
+MacOS/darwin is not currently supported.
 
 ### Features:
 - Install, Uninstall mods
 - Deactivate, Activate mods
 - Import mods from previous game versions
+- Choose which game version to import mods **to**
 - Move mods between different game versions
+- Persist your theme preference (Light/Dark)
 - View mod information
 - Browse `wgmods.net` for mods
 - Drag and drop mod installation for `.wotmod` files
@@ -54,70 +56,84 @@ Planned features:
 - [ ] `res_mods` directory support
 - [ ] Localization / language support
 - [x] Styling and theming
+    - [x] Persist theme preference across restarts
 
 ### Install
-To install, the recommended way is to use the flatpak.
-As I have not yet submitted the app to flathub, you will need to install it manually for now.
+The recommended way to run the app is to use the Flatpak build.
+As the app has not yet been submitted to Flathub, you will need to build it manually for now.
 
-Download the latest release from the release page.
+**Automatic releases:** Tagging a commit with a `v*` tag (e.g. `v1.0.0`) triggers a CI pipeline that builds the Flatpak bundle and publishes it as a GitHub release.
+Install the latest release:
+```bash
+flatpak install --user --bundle WoTModAssistant.flatpak
+```
+Update an existing install:
+```bash
+flatpak update --user --reinstall --bundle WoTModAssistant.flatpak
+```
+The `WoTModAssistant.flatpak` bundle is attached to each release on the [releases](https://github.com/sam-k0/WoTModAssistantCore/releases) page.
 
-**Installing first time:**
-`flatpak install --user --bundle WoTModAssistant.flatpak`
+- [Building](#building) — build a distributable executable directory with PyInstaller.
+- [Running from source](#running-from-source) — run the app directly without building.
+- [Manual Setup](#manual-setup) — point the app at your World of Tanks install.
 
-**Updating**
-`flatpak update --user --reinstall --bundle WoTModAssistant.flatpak`
+## Running from source
+The GUI is a pure Python + PySide6 application, so you can run it directly without building an executable.
 
-# Instructions below are for legacy version found in the releases tab.
-As I am changing the whole project structure and code, there is no working release at the moment.
+1. Create a virtual environment (recommended):
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r ModManagerGUI/requirements-local.txt
+   ```
+3. Run the app from the `ModManagerGUI` directory:
+   ```bash
+   cd ModManagerGUI
+   python3 main.py
+   ```
+   Or use the wrapper script: `./run.sh`
 
-There will be a windows executable and linux flatpak or AppImage release.
+On first run you will be prompted to select your World of Tanks install directory — choose the folder containing `WorldOfTanks.exe`.
 
-## Installing
-Following is an unfinished guide on how to install `ModManagerCore` and `ModManagerCoreGUI`.
-> [!TIP]
-> If you have trouble with automatic setup, please consult the `Manual Install`section of this readme.
+## Building
+The project is built with PyInstaller into a single executable directory.
+Linux, Windows and Flatpak build workflows are provided in `.github/workflows/` and can be triggered manually from the Actions tab.
 
-### Linux
+### Building the GUI
+1. Set up a virtual environment with Python 3.11:
+   ```bash
+   python -m venv .venv && source .venv/bin/activate
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r ModManagerGUI/requirements-local.txt
+   ```
+3. Build with PyInstaller from the `ModManagerGUI` directory:
+   ```bash
+   cd ModManagerGUI
+   pyinstaller --name ModManagerGUI --windowed main.py
+   ```
+4. The built app is in `ModManagerGUI/dist/ModManagerGUI/`. Zip that directory for distribution.
 
 > [!TIP]
 > You can also execute the `build_linux.sh` script after setting up a venv with pyside6 and pyinstaller installed.
-> Also, builds can be found in the [release](https://github.com/sam-k0/WoTModAssistantCore/releases) tab.
+> Builds can be found in the [release](https://github.com/sam-k0/WoTModAssistantCore/releases) tab.
 
-1. Download or build the project.
-2. Run `ModManagerGUI`.
-3. It should prompt you to select your game directory.
-4. Select the directory containing `WorldOfTanks.exe`
+## Manual Setup
+The app bundles everything it needs; there is no separate core executable to install.
+You only need to point it at your World of Tanks installation.
 
-
-### Windows
-> [!TIP]
-> Please download the latest `Windows release` build from the [release](https://github.com/sam-k0/WoTModAssistantCore/releases) tab.
-
-1. Download and unzip the latest release.
-2. Run `ModManagerGUI.exe`.
-3. On first run, it will prompt you to select the game directory, you can find it by checking the `WargamingGameCenter`->`World Of Tanks`->`Modify Installation`->`open game directory`.
-4. Select the path to `WorldOfTanks.exe`.
-
-## Manual Install & Setup
-
-### Linux
-1. Create a new directory `wotmodmanager`, and a directory called `Core` inside it.
-2. Build or install the `ModManagerCore` to the newly created `wotmodmanager/Core` directory.
-3. Install the CoreGUI in the parent folder, so that the `Core` directory one directory deeper as the `CoreGUI` executable.
-4. Important step: Run the `ModManagerCore` executable, it will prompt you to enter your World of Tanks install directory path. This means the directory where `WorldOfTanks.exe` resides.
-5. Now, run the `CoreGUI` and you should see it automatically listing mods.
-
-### Windows
-1. Download the `.zip` archive and extract.
-2. Inside it, find the `_internal/Core` folder.
-3. Run `ModManagerCore.exe` and set up your World Of Tanks install path (the directory where `WorldOfTanks.exe` resides.)
-4. Run the `CoreGUI` from the main directory.
+1. Run the app (`python3 main.py` from `ModManagerGUI`, or run a built release).
+2. On first run, select your World of Tanks install directory — the folder containing `WorldOfTanks.exe`.
+   - On Windows you can find it via `WargamingGameCenter` → `World Of Tanks` → `Modify Installation` → `open game directory`.
+3. The app will now list your installed mods. Your settings (including theme) are saved to `~/.config/wotmodassistant/config.json`.
 
 ## Dependencies
-- PySide6, PyInstaller, Python 3.11x `(ModManagerCoreGUI)`
-- Newtonsoft.Json, .NET 8.0 `(ModManagerCore)`
-
-Please check the project's subdirectories readme files for more information on how to build.
+- PySide6, PyInstaller, Python 3.11 (`ModManagerGUI`)
+- `modcore` is a pure-Python backend, so no separate C# core is required to run the GUI.
 
 ### Contributing
 

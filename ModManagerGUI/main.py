@@ -130,8 +130,8 @@ class MainWindow(QtWidgets.QWidget):
         self.btn_install = QtWidgets.QPushButton("Install mod")
         self.btn_install.setToolTip("Install a mod from a .wotmod file")
 
-        self.btn_moveall = QtWidgets.QPushButton("Import mods from older game version")
-        self.btn_moveall.setToolTip("Move all mods from a previous game version to the current version")
+        self.btn_moveall = QtWidgets.QPushButton("Import mods to a version")
+        self.btn_moveall.setToolTip("Import mods from a previous game version to a chosen version")
 
         self.btn_disableall = QtWidgets.QPushButton("Disable all mods")
         self.btn_disableall.setToolTip("Disable all installed mods")
@@ -507,18 +507,25 @@ class ImportPrevModsWindow(QtWidgets.QDialog):
         self.mainlayout.setContentsMargins(10, 10, 10, 10)  # Adjust margins (left, top, right, bottom)
         self.mainlayout.setSpacing(5)  # Adjust spacing between widgets
 
-        self.lbl_title = QtWidgets.QLabel("Import mods from a previous version")
+        self.lbl_title = QtWidgets.QLabel("Import mods to a version")
         self.cbb_mod_folders = QtWidgets.QComboBox()
+        self.cbb_target_folders = QtWidgets.QComboBox()
         self.btn_import = QtWidgets.QPushButton("Import")
         self.btn_cancel = QtWidgets.QPushButton("Cancel")
 
         # Set QLabel to avoid expanding unnecessarily
         self.lbl_title.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
+        # Form layout for source and destination version selectors
+        self.formlayout = QtWidgets.QFormLayout()
+        self.formlayout.setFormAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.formlayout.addRow("Import from:", self.cbb_mod_folders)
+        self.formlayout.addRow("Import to:", self.cbb_target_folders)
+
         # Add widgets to layout
         self.mainlayout.addWidget(self.lbl_title)
-        self.mainlayout.addWidget(self.cbb_mod_folders)
-        
+        self.mainlayout.addLayout(self.formlayout)
+
         # Button layout
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.setSpacing(5)  # Reduce spacing between buttons
@@ -546,13 +553,20 @@ class ImportPrevModsWindow(QtWidgets.QDialog):
         for folder in folders:
             self.cbb_mod_folders.addItem(folder)
 
+        self.cbb_target_folders.clear()
+        for folder in folders:
+            self.cbb_target_folders.addItem(folder)
         # set the current index to the newest version
-        self.cbb_mod_folders.setCurrentIndex(len(folders)-1)
+        self.cbb_target_folders.setCurrentIndex(len(folders)-1)
 
     @QtCore.Slot()
     def import_mods(self):
         folder = self.cbb_mod_folders.currentText()
-        response = self.modmanager.move_to_newest_from(folder)
+        target = self.cbb_target_folders.currentText()
+        if folder == target:
+            self.parent_window.show_error("Source and target versions cannot be the same.", "Error: Invalid selection")
+            return
+        response = self.modmanager.move_to_newest_from(folder, target)
         msg, err, act = self.modmanager.output_split(response)
         if err.value != 0:
             self.parent_window.show_error(f"An error occurred.\n{msg}", "Error: Could not move mods")
