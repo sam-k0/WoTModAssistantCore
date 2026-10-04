@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Flatpak bundle
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
         with:
           manifest-path: eu.samk0.WoTModAssistant.yaml
           bundle: WoTModAssistant.flatpak
