@@ -35,7 +35,7 @@ jobs:
 
     - name: Zip exe
       run: |
-        $exe = "ModManagerGUI/dist/WoTModAssistant/WoTModAssistant.exe"
+        $exe = "ModManagerGUI/dist/WoTModAssistant.exe"
         Compress-Archive -Path $exe -DestinationPath "WoTModAssistant-win.zip"
 
     - name: Create a new release
