@@ -155,17 +155,19 @@ class MainWindow(QtWidgets.QWidget):
         # Set up main layout
         self.mainlayout.addSpacing(10)
         self.mainlayout.addWidget(self.lbl_installed)
-        self.mainlayout.addWidget(self.mod_table_view)
+        # Give the mod table all available vertical space
+        self.mainlayout.addWidget(self.mod_table_view, 1)
+        # Details
         self.mainlayout.addWidget(self.lbl_details)
         self.mainlayout.addWidget(self.lbl_description)
         self.mainlayout.addWidget(self.lbl_inspect_mod_help)
-        self.mainlayout.addStretch()
 
+        # Button rows
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_refresh)
         self.hlayout.addWidget(self.btn_inspect)
         self.mainlayout.addLayout(self.hlayout)
-        
+
         self.hlayout = QtWidgets.QHBoxLayout()
         self.hlayout.addWidget(self.btn_toggle)
         self.hlayout.addWidget(self.btn_install)
