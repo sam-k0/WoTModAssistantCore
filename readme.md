@@ -70,7 +70,7 @@ flatpak install --user --bundle WoTModAssistant.flatpak
 ```
 Update an existing install:
 ```bash
-flatpak update --user --reinstall --bundle WoTModAssistant.flatpak
+flatpak install --user --reinstall --bundle WoTModAssistant.flatpak
 ```
 The `WoTModAssistant.flatpak` bundle is attached to each release on the [releases](https://github.com/sam-k0/WoTModAssistantCore/releases) page.
 
