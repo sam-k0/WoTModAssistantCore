@@ -103,6 +103,8 @@ On first run you will be prompted to select your World of Tanks install director
 The project is built with PyInstaller into a single executable directory.
 Linux, Windows and Flatpak build workflows are provided in `.github/workflows/` and can be triggered manually from the Actions tab.
 
+The flatpak build file always takes the flatpak branch as a source, so if you want to build a flatpak release, make sure to merge your changes into the `flatpak` branch first.
+
 ### Building the GUI
 1. Set up a virtual environment with Python 3.11:
    ```bash
